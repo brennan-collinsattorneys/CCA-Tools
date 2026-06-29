@@ -134,6 +134,9 @@ in the list now has a dedicated, standardized Team and SharePoint site.
    **Then** each Open matter gets a dedicated Team and SharePoint site.
 2. **Given** bulk provisioning completes, **When** the inventory is reconciled, **Then**
    every Open matter is accounted for with no manual creation required.
+3. **Given** the validated inventory, **When** bulk provisioning is initiated, **Then** the
+   process pauses at a manual-approval checkpoint and proceeds only after explicit human
+   approval.
 
 ---
 
@@ -154,6 +157,9 @@ SharePoint site and any maintained links still resolve until verification comple
    the documents appear in the new matter's SharePoint site with metadata applied.
 2. **Given** migration is in progress, **When** users access content, **Then** links from the
    legacy location remain functional until migration is verified.
+3. **Given** documents are copied to the new site, **When** cutover (removing legacy links/
+   content) is proposed, **Then** it occurs only after an explicit human verification/approval
+   checkpoint.
 
 ---
 
@@ -200,6 +206,36 @@ receive historical matters, with no associated Team.
    for most users.
 3. **Given** the repository site, **When** configured, **Then** it supports AI indexing and
    uses the same metadata model where practical and is ready to receive historical matters.
+
+---
+
+### User Story 9 - Power Automate Channel-to-Workspace Conversion with Manual Gates (Priority: P2)
+
+The existing matter channels in the legacy Clients Team are converted into their own dedicated
+workspaces (Team + SharePoint site) using a Power Automate conversion flow. The flow drives the
+standardized provisioning, but the process stops at explicit manual-approval checkpoints so a
+human can review before bulk runs, before each conversion batch, and before legacy content/links
+are removed.
+
+**Why this priority**: This is the mechanism (researched by the PO) for moving existing channel
+content into the new architecture. It depends on standardized templates (US1) and provisioning
+(US2) and the inventory (US3), and it must be human-gated to be safe in production.
+
+**Independent Test**: Run the conversion flow against one existing channel and confirm it produces
+a standardized workspace, pauses at the approval checkpoint, and only proceeds to cutover after
+explicit human approval.
+
+**Acceptance Scenarios**:
+
+1. **Given** an existing matter channel in the Clients Team, **When** the conversion flow runs,
+   **Then** a standardized Team + SharePoint site is produced matching the provisioning output.
+2. **Given** a conversion batch is queued, **When** it reaches the approval checkpoint, **Then**
+   the flow pauses and requires explicit human approval before continuing.
+3. **Given** content has been copied to the new workspace, **When** cutover is proposed, **Then**
+   legacy links/content are only removed after a human verifies and approves the cutover.
+4. **Given** the conversion flow, **When** it authenticates to SharePoint/Teams, **Then** it uses
+   governed Power Platform connections (service account / service principal), not personal ad-hoc
+   credentials.
 
 ---
 
@@ -266,6 +302,20 @@ receive historical matters, with no associated Team.
 - **FR-018**: After the sprint, the legacy Clients Team MUST be used only for intake,
   referrals, and administrative functions, and all future development MUST target the LKOS
   architecture.
+- **FR-019**: The firm MUST establish a dedicated Microsoft Entra ID app registration
+  (service principal) as the credential for local automation, supporting interactive
+  (delegated) sign-in for manual/pilot steps and certificate-based app-only authentication
+  for unattended bulk operations, granted least-privilege admin-consented permissions to
+  Microsoft Graph, SharePoint, and the Power Platform.
+- **FR-020**: The conversion of existing matter channels in the legacy Clients Team into
+  their own dedicated workspaces (Team + SharePoint site) MUST be performed using a Power
+  Automate conversion flow, authored and deployed via the Power Platform, with the same
+  standardized output as one-click provisioning.
+- **FR-021**: The migration process MUST include explicit manual-intervention checkpoints
+  where a human reviews and approves before proceeding: (a) before bulk provisioning of all
+  open matters, (b) before each channel-to-workspace conversion batch, and (c) before legacy
+  links/content are removed (cutover verification). Automated steps MUST pause at these gates
+  until approved.
 
 ### Key Entities *(include if feature involves data)*
 
@@ -287,6 +337,14 @@ receive historical matters, with no associated Team.
   matters as institutional knowledge, AI-indexable, with no associated Team.
 - **Legacy Clients Team**: The existing single Team being frozen for new matter channels and
   repurposed for intake/referrals/administration.
+- **Entra ID App Registration**: The service-principal identity (Tenant ID, Client ID,
+  certificate) used by local automation to authenticate to Graph, SharePoint, and the Power
+  Platform; supports delegated and app-only modes with least-privilege, admin-consented scopes.
+- **Conversion Flow**: The Power Automate flow that converts an existing Clients Team channel
+  into a standardized workspace, pausing at manual-approval checkpoints and using governed
+  Power Platform connections.
+- **Approval Checkpoint**: A required human review/approval gate before bulk provisioning,
+  before each conversion batch, and before legacy cutover.
 
 ## Success Criteria *(mandatory)*
 
@@ -311,6 +369,11 @@ receive historical matters, with no associated Team.
 - **SC-008**: The matter inventory accounts for 100% of existing matters, each with a single
   unambiguous classification (Prospective/Open/Closed).
 - **SC-009**: Sprint 0 completes within the 3–5 day target window.
+- **SC-010**: Local automation authenticates to Graph, SharePoint, and the Power Platform via
+  the dedicated Entra ID app registration with no personal/ad-hoc credentials and no secrets
+  committed to the repository.
+- **SC-011**: Every channel-to-workspace conversion passes through its required manual-approval
+  checkpoints; no legacy content/links are removed without an explicit human cutover approval.
 
 ## Assumptions
 
@@ -325,7 +388,14 @@ receive historical matters, with no associated Team.
   finalizes a different single standard during the sprint.
 - The PM owns and completes the inventory; engineering consumes it as the provisioning source.
 - Network connectivity and licensing for Teams/SharePoint provisioning are available.
+- Power Automate is IN SCOPE this sprint **only** as the channel-to-workspace conversion
+  mechanism (US9). Power Automate **document workflows** (routing, approvals on documents,
+  generation pipelines) remain OUT OF SCOPE and deferred.
 - Closed-matter content migration, AI indexing of historical files, Power Automate document
   workflows, document generation, knowledge-graph implementation, and assistant integrations
   (ChatGPT, Copilot, Claude, Lexis Protégé) and advanced AI agents are explicitly OUT OF SCOPE
   for Sprint 0 and deferred to later sprints.
+- Authentication for local automation uses a dedicated Microsoft Entra ID app registration
+  (service principal). Certificate-based app-only auth is used for unattended bulk runs;
+  interactive delegated sign-in is used for manual/pilot steps. Admin consent for app
+  permissions requires a Global Administrator (or Privileged Role Administrator).

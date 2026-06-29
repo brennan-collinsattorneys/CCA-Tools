@@ -1,0 +1,38 @@
+{
+  "$comment": "Committed, non-secret configuration. Real tenant/credential values go in the git-ignored config/lkos-settings.local.json (see lkos-settings.local.sample.json).",
+  "tenant": {
+    "primaryDomain": "<your-tenant>.onmicrosoft.com",
+    "sharePointRootUrl": "https://<your-tenant>.sharepoint.com",
+    "sharePointAdminUrl": "https://<your-tenant>-admin.sharepoint.com"
+  },
+  "app": {
+    "applicationName": "LKOS-Provisioning",
+    "graphApplicationScopes": [
+      "Group.ReadWrite.All",
+      "Directory.ReadWrite.All",
+      "GroupMember.ReadWrite.All",
+      "Team.Create",
+      "Channel.Create",
+      "TeamSettings.ReadWrite.All",
+      "Sites.FullControl.All"
+    ],
+    "sharePointApplicationScopes": ["Sites.FullControl.All"],
+    "leastPrivilegeNote": "Prefer Sites.Selected and per-site grants where feasible."
+  },
+  "groups": {
+    "namingPattern": "LKOS-Matter-{MatterID}-{Role}",
+    "roles": ["Owners", "Members", "ReadOnly"]
+  },
+  "retention": {
+    "matterRetentionLabelId": "<retention-label-id>",
+    "knowledgeRepoRetentionLabelId": "<retention-label-id>"
+  },
+  "legacy": {
+    "clientsTeamId": "<legacy-clients-team-id>",
+    "clientsTeamSiteUrl": "https://<your-tenant>.sharepoint.com/sites/Clients"
+  },
+  "powerPlatform": {
+    "environmentUrl": "https://<env>.crm.dynamics.com",
+    "environmentId": "<environment-id>"
+  }
+}

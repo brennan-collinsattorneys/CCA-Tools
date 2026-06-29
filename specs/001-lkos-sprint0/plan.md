@@ -22,7 +22,15 @@ template definitions (XML/JSON)
 
 **Primary Dependencies**: Microsoft Graph (Teams, Groups, Sites), PnP PowerShell
 (`PnP.PowerShell`) and PnP Provisioning Templates / Site Designs & Site Scripts, Microsoft
-Teams team templates, Microsoft 365 Groups, Microsoft Purview retention (labels/policies)
+Teams team templates, Microsoft 365 Groups, Microsoft Purview retention (labels/policies),
+Power Automate + Power Platform CLI (`pac`) for the channel-to-workspace conversion flow
+
+**Authentication**: A dedicated Microsoft Entra ID app registration (service principal). Two
+modes: (1) interactive/delegated sign-in for manual and pilot steps; (2) certificate-based
+app-only auth for unattended bulk runs. Credentials referenced by scripts are Tenant ID +
+Client ID + certificate thumbprint (cert stored in `CurrentUser\My`); no secrets in the repo.
+Power Automate flows act through governed Power Platform connections (service account / service
+principal), not personal credentials. Admin consent requires Global/Privileged Role Admin.
 
 **Storage**: SharePoint Online document libraries (system of record); Microsoft 365 Group
 mailbox/Team for collaboration; a CSV/Excel matter inventory as the migration source list
@@ -43,7 +51,8 @@ open matters from the inventory within the 3–5 day sprint window
 
 **Constraints**: 3–5 day target; production tenant changes must be reversible/idempotent;
 least-privilege security; closed matters never get a Team; no separate AI-upload step; legacy
-Clients Team frozen for new matter channels
+Clients Team frozen for new matter channels; migration includes mandatory human-approval gates
+(before bulk provisioning, before each conversion batch, before legacy cutover)
 
 **Scale/Scope**: All current open matters at Collins & Collins (tens to low-hundreds expected);
 one knowledge repository; one provisioning pipeline
@@ -59,6 +68,15 @@ one knowledge repository; one provisioning pipeline
 | III. AI is a core component of every matter | Provisioning emits a standardized AI registration placeholder + AI Workspace channel + AI-indexable metadata; no separate AI-upload. PASS |
 | IV. Standardized architecture for every matter | Single Team template + single Site template + single naming standard enforced by provisioning; no bespoke matters. PASS |
 | V. Closed matters become institutional knowledge | Read-only Litigation Knowledge Repository created with shared metadata model; closed-matter content migration deferred per spec. PASS |
+
+**Power Automate scope note**: Constitution/spec defer "Power Automate document workflows."
+This plan uses Power Automate **only** as the channel-to-workspace conversion mechanism (US9),
+which is distinct from document workflows and remains consistent with standardized provisioning
+(Principle IV). Document-workflow automation stays out of scope. No constitutional violation.
+
+**Least privilege (auth)**: The Entra ID app uses admin-consented, least-privilege scopes
+(prefer `Sites.Selected` over tenant-wide `Sites.FullControl.All` where feasible), reinforcing
+the governance posture. PASS.
 
 No violations. Complexity Tracking not required.
 
@@ -101,18 +119,24 @@ src/
 │   └── Register-MatterAIPlaceholder.ps1 # Emit standardized AI registration placeholder
 ├── migration/
 │   ├── Import-MatterInventory.ps1       # Read/validate the PM inventory spreadsheet
-│   ├── Invoke-BulkProvisioning.ps1      # Provision all open matters from inventory
+│   ├── Invoke-BulkProvisioning.ps1      # Provision all open matters (human-gated)
 │   └── Move-LegacyDocuments.ps1         # Move docs from Clients Team, keep links until verified
+├── conversion/
+│   └── powerautomate/                   # Channel-to-workspace conversion flow (exported solution)
+│       └── README.md                    # Flow design, triggers, connections, approval gates
 ├── repository/
 │   └── New-KnowledgeRepository.ps1      # Provision read-only closed-matter repository
 ├── governance/
 │   └── Set-ClientsTeamChannelFreeze.ps1 # Freeze new matter channels in legacy Clients Team
 └── common/
-    ├── Connect-LkosTenant.ps1           # Auth/connection helpers (Graph + PnP)
+    ├── Connect-LkosTenant.ps1           # Auth/connection helpers (Graph + PnP, both modes)
+    ├── Register-LkosEntraApp.ps1        # Create Entra ID app + certificate for automation
+    ├── Request-LkosApproval.ps1         # Manual-approval checkpoint gate helper
     └── Lkos.Naming.ps1                  # Naming-standard enforcement helper
 
 config/
-├── lkos-settings.json                   # Tenant URLs, group naming, retention label IDs
+├── lkos-settings.json                   # Committed: tenant placeholders, scopes, structure
+├── lkos-settings.local.sample.json      # Template for the git-ignored local settings file
 ├── matter-metadata-model.json           # Canonical metadata columns/terms
 └── naming-standard.json                 # Matter Number – Client Last Name – Short Description
 
@@ -120,8 +144,10 @@ inventory/
 └── matter-inventory.template.xlsx       # PM master inventory template (authoritative source)
 
 docs/
+├── auth-setup.md                        # Entra ID app registration + credentials setup guide
 ├── validation-checklist.md              # Pilot validation: permissions/docs/search/metadata/structure
 ├── provisioning-runbook.md              # Operator one-click + bulk runbook
+├── conversion-runbook.md                # Power Automate channel-to-workspace conversion + gates
 └── legacy-clients-team-policy.md        # Post-sprint intake/referral/admin-only usage
 ```
 

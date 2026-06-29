@@ -1,0 +1,11 @@
+{
+  "$comment": "Copy this file to config/lkos-settings.local.json (git-ignored) and fill in real values. NEVER commit the .local.json file.",
+  "tenantId": "00000000-0000-0000-0000-000000000000",
+  "primaryDomain": "<your-tenant>.onmicrosoft.com",
+  "sharePointRootUrl": "https://<your-tenant>.sharepoint.com",
+  "sharePointAdminUrl": "https://<your-tenant>-admin.sharepoint.com",
+  "clientId": "00000000-0000-0000-0000-000000000000",
+  "certificateThumbprint": "0000000000000000000000000000000000000000",
+  "powerPlatformEnvironmentUrl": "https://<env>.crm.dynamics.com",
+  "legacyClientsTeamId": "<legacy-clients-team-id>"
+}
