@@ -1,0 +1,43 @@
+{
+  "$comment": "Standardized LKOS Matter Team definition. Consumed by src/provisioning/New-MatterTeam.ps1, which replaces {{tokens}} and creates the Team via Microsoft Graph. Channel set is standardized across ALL matters and must match the SharePoint structure.",
+  "$schema": "https://graph.microsoft.com/v1.0/$metadata#teams/$entity",
+  "templateVersion": "1.0.0",
+  "template@odata.bind": "https://graph.microsoft.com/v1.0/teamsTemplates('standard')",
+  "displayName": "{{MatterDisplayName}}",
+  "description": "LKOS matter workspace for {{MatterId}} - {{ClientName}}. Collaboration only; SharePoint is the system of record.",
+  "visibility": "private",
+  "memberSettings": {
+    "allowCreateUpdateChannels": false,
+    "allowDeleteChannels": false,
+    "allowAddRemoveApps": false,
+    "allowCreateUpdateRemoveTabs": true,
+    "allowCreateUpdateRemoveConnectors": false
+  },
+  "guestSettings": {
+    "allowCreateUpdateChannels": false,
+    "allowDeleteChannels": false
+  },
+  "messagingSettings": {
+    "allowUserEditMessages": true,
+    "allowUserDeleteMessages": false,
+    "allowOwnerDeleteMessages": true
+  },
+  "funSettings": {
+    "allowGiphy": false,
+    "allowStickersAndMemes": false,
+    "allowCustomMemes": false
+  },
+  "channels": [
+    { "displayName": "General", "isFavoriteByDefault": true, "description": "Matter overview, status, and general discussion." },
+    { "displayName": "Administration", "isFavoriteByDefault": true, "description": "Engagement, billing coordination, and matter administration." },
+    { "displayName": "Pleadings", "isFavoriteByDefault": true, "description": "Complaints, answers, and filed pleadings." },
+    { "displayName": "Discovery", "isFavoriteByDefault": true, "description": "Interrogatories, RFPs, RFAs, and discovery responses." },
+    { "displayName": "Medical Records", "isFavoriteByDefault": false, "description": "Medical records and related summaries." },
+    { "displayName": "Experts", "isFavoriteByDefault": false, "description": "Expert disclosures, reports, and correspondence." },
+    { "displayName": "Depositions", "isFavoriteByDefault": false, "description": "Deposition notices, transcripts, and exhibits." },
+    { "displayName": "Motions", "isFavoriteByDefault": false, "description": "Motions, briefs, and supporting materials." },
+    { "displayName": "Trial", "isFavoriteByDefault": false, "description": "Trial prep, exhibits, and presentation materials." },
+    { "displayName": "Settlement", "isFavoriteByDefault": false, "description": "Settlement negotiations, demands, and agreements." },
+    { "displayName": "AI Workspace", "isFavoriteByDefault": false, "description": "AI-assisted research, summaries, and retrieval for this matter. Matter is AI-ready by default." }
+  ]
+}

@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Standardized LKOS Matter SharePoint site template (system of record).
+  Applied by src/provisioning/New-MatterSite.ps1 AFTER matter-content-type.xml.
+  Provides: document library + AI registration list, the LKOS Matter Document content type
+  binding, document-library folders aligned to the standard Teams channels, versioning
+  (T015), least-privilege permissions (T014), and retention wiring (T015).
+
+  Tokens resolved at provisioning time:
+    {parameter:MatterId}        - firm matter number
+    {parameter:OwnersGroup}     - per-matter Owners security group (Full Control)
+    {parameter:MembersGroup}    - per-matter Members security group (Edit)
+    {parameter:ReadOnlyGroup}   - per-matter read-only security group (Read)
+    {parameter:RetentionLabel}  - Purview retention label name (from config/lkos-settings.json)
+-->
+<pnp:Provisioning xmlns:pnp="http://schemas.dev.office.com/PnP/2022/09/ProvisioningSchema">
+
+  <pnp:Parameters>
+    <pnp:Parameter Key="MatterId" Required="true"></pnp:Parameter>
+    <pnp:Parameter Key="OwnersGroup" Required="true"></pnp:Parameter>
+    <pnp:Parameter Key="MembersGroup" Required="true"></pnp:Parameter>
+    <pnp:Parameter Key="ReadOnlyGroup" Required="true"></pnp:Parameter>
+    <pnp:Parameter Key="RetentionLabel" Required="false"></pnp:Parameter>
+  </pnp:Parameters>
+
+  <pnp:Templates ID="LKOS-SITE-TEMPLATES">
+    <pnp:ProvisioningTemplate ID="LKOS-MATTER-SITE" Version="1" BaseSiteTemplate="GROUP#0">
+
+      <!-- T014: Least-privilege permissions. Per-matter security groups are bound to
+           built-in roles; broad sharing is disabled at provisioning via New-MatterSite.ps1. -->
+      <pnp:Security BreakRoleInheritance="true" CopyRoleAssignments="false" ClearSubscopes="true">
+        <pnp:Permissions>
+          <pnp:RoleAssignment Principal="{parameter:OwnersGroup}" RoleDefinition="Full Control" />
+          <pnp:RoleAssignment Principal="{parameter:MembersGroup}" RoleDefinition="Edit" />
+          <pnp:RoleAssignment Principal="{parameter:ReadOnlyGroup}" RoleDefinition="Read" />
+        </pnp:Permissions>
+      </pnp:Security>
+
+      <pnp:Lists>
+
+        <!-- Primary system-of-record document library. Folders align to standard channels so
+             Teams channel Files map cleanly. T015: versioning enabled with limits. -->
+        <pnp:ListInstance Title="Matter Documents"
+                          Description="System of record for matter {parameter:MatterId}. SharePoint owns these documents; Teams collaborates on them."
+                          TemplateType="101"
+                          Url="MatterDocuments"
+                          EnableVersioning="true"
+                          EnableMinorVersions="true"
+                          MajorVersionLimit="500"
+                          MinorVersionLimit="10"
+                          ForceCheckout="false"
+                          ContentTypesEnabled="true"
+                          RemoveExistingContentTypes="false"
+                          EnableAttachments="false">
+          <pnp:ContentTypeBindings>
+            <pnp:ContentTypeBinding ContentTypeID="0x010100C1D2E3F4A5B6478899AABBCCDDEEFF00" Default="true" />
+          </pnp:ContentTypeBindings>
+          <pnp:Folders>
+            <pnp:Folder Name="General" />
+            <pnp:Folder Name="Administration" />
+            <pnp:Folder Name="Pleadings" />
+            <pnp:Folder Name="Discovery" />
+            <pnp:Folder Name="Medical Records" />
+            <pnp:Folder Name="Experts" />
+            <pnp:Folder Name="Depositions" />
+            <pnp:Folder Name="Motions" />
+            <pnp:Folder Name="Trial" />
+            <pnp:Folder Name="Settlement" />
+            <pnp:Folder Name="AI Workspace" />
+          </pnp:Folders>
+          <pnp:FieldDefaults>
+            <pnp:FieldDefault FieldName="LKOSMatterID">{parameter:MatterId}</pnp:FieldDefault>
+            <pnp:FieldDefault FieldName="LKOSMatterStatus">Open</pnp:FieldDefault>
+            <pnp:FieldDefault FieldName="LKOSAIIndexState">Pending</pnp:FieldDefault>
+            <pnp:FieldDefault FieldName="LKOSRetentionLabel">{parameter:RetentionLabel}</pnp:FieldDefault>
+          </pnp:FieldDefaults>
+        </pnp:ListInstance>
+
+        <!-- AI registration placeholder list (matches config/matter-metadata-model.json).
+             Makes the matter AI-ready by default; no separate AI-upload process. -->
+        <pnp:ListInstance Title="LKOS AI Registration"
+                          Description="AI-readiness marker for this matter. Future OCR/semantic/vector/knowledge-graph indexing consumes these records."
+                          TemplateType="100"
+                          Url="Lists/LKOSAIRegistration"
+                          EnableVersioning="true"
+                          Hidden="false">
+          <pnp:Fields>
+            <Field Name="SourceSiteUrl" DisplayName="Source Site URL" Type="URL" Group="LKOS" Required="FALSE" />
+            <Field Name="RegisteredDateTime" DisplayName="Registered" Type="DateTime" Group="LKOS" Required="FALSE" />
+          </pnp:Fields>
+          <pnp:FieldRefs>
+            <pnp:FieldRef ID="{a1b2c3d4-0001-4a01-9f01-000000000001}" Name="LKOSMatterID" />
+            <pnp:FieldRef ID="{a1b2c3d4-0011-4a01-9f01-000000000011}" Name="LKOSAIIndexState" />
+          </pnp:FieldRefs>
+        </pnp:ListInstance>
+
+      </pnp:Lists>
+
+      <!-- T015: Retention. Purview retention labels are tenant-scoped and applied post-provision
+           via Graph/PnP using the label id in config/lkos-settings.json (retention.*). This
+           default library label name is surfaced through the LKOSRetentionLabel field default
+           above; New-MatterSite.ps1 applies the actual Purview label to the library. -->
+      <pnp:Properties>
+        <pnp:Property Key="LKOS_TemplateVersion" Value="1.0.0" />
+        <pnp:Property Key="LKOS_SystemOfRecord" Value="SharePoint" />
+        <pnp:Property Key="LKOS_RetentionLabel" Value="{parameter:RetentionLabel}" />
+      </pnp:Properties>
+
+    </pnp:ProvisioningTemplate>
+  </pnp:Templates>
+</pnp:Provisioning>

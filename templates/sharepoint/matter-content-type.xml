@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  LKOS Matter metadata: site columns + the "LKOS Matter Document" content type.
+  Mirrors config/matter-metadata-model.json (keep both in sync; internal Names are stable).
+  PnP Provisioning Schema. Applied by src/provisioning/New-MatterSite.ps1 and reused by the
+  Litigation Knowledge Repository. Field IDs must not change once deployed.
+-->
+<pnp:Provisioning xmlns:pnp="http://schemas.dev.office.com/PnP/2022/09/ProvisioningSchema">
+  <pnp:Templates ID="LKOS-CONTENTTYPE-TEMPLATES">
+    <pnp:ProvisioningTemplate ID="LKOS-MATTER-CONTENTTYPE" Version="1" BaseSiteTemplate="GROUP#0">
+
+      <pnp:SiteFields>
+        <Field ID="{a1b2c3d4-0001-4a01-9f01-000000000001}" Name="LKOSMatterID" DisplayName="Matter ID" Type="Text" Group="LKOS" Required="TRUE" Indexed="TRUE" EnforceUniqueValues="FALSE" />
+        <Field ID="{a1b2c3d4-0002-4a01-9f01-000000000002}" Name="LKOSClientName" DisplayName="Client Name" Type="Text" Group="LKOS" Required="TRUE" Indexed="TRUE" />
+        <Field ID="{a1b2c3d4-0003-4a01-9f01-000000000003}" Name="LKOSMatterName" DisplayName="Matter Name" Type="Text" Group="LKOS" Required="FALSE" />
+        <Field ID="{a1b2c3d4-0004-4a01-9f01-000000000004}" Name="LKOSMatterStatus" DisplayName="Matter Status" Type="Choice" Group="LKOS" Required="TRUE">
+          <Default>Open</Default>
+          <CHOICES>
+            <CHOICE>Prospective</CHOICE>
+            <CHOICE>Open</CHOICE>
+            <CHOICE>Closed</CHOICE>
+          </CHOICES>
+        </Field>
+        <Field ID="{a1b2c3d4-0005-4a01-9f01-000000000005}" Name="LKOSPracticeArea" DisplayName="Practice Area" Type="Choice" Group="LKOS" Required="FALSE">
+          <CHOICES>
+            <CHOICE>Personal Injury</CHOICE>
+            <CHOICE>Civil Rights</CHOICE>
+            <CHOICE>Medical Malpractice</CHOICE>
+            <CHOICE>Wrongful Death</CHOICE>
+            <CHOICE>Employment</CHOICE>
+            <CHOICE>General Litigation</CHOICE>
+            <CHOICE>Other</CHOICE>
+          </CHOICES>
+        </Field>
+        <Field ID="{a1b2c3d4-0006-4a01-9f01-000000000006}" Name="LKOSLeadAttorney" DisplayName="Lead Attorney" Type="User" Group="LKOS" Required="FALSE" UserSelectionMode="PeopleOnly" />
+        <Field ID="{a1b2c3d4-0007-4a01-9f01-000000000007}" Name="LKOSDocumentType" DisplayName="Document Type" Type="Choice" Group="LKOS" Required="FALSE">
+          <CHOICES>
+            <CHOICE>Pleading</CHOICE>
+            <CHOICE>Discovery</CHOICE>
+            <CHOICE>Medical Record</CHOICE>
+            <CHOICE>Expert Report</CHOICE>
+            <CHOICE>Deposition</CHOICE>
+            <CHOICE>Motion</CHOICE>
+            <CHOICE>Correspondence</CHOICE>
+            <CHOICE>Contract/Agreement</CHOICE>
+            <CHOICE>Settlement</CHOICE>
+            <CHOICE>Trial Exhibit</CHOICE>
+            <CHOICE>Administrative</CHOICE>
+            <CHOICE>Other</CHOICE>
+          </CHOICES>
+        </Field>
+        <Field ID="{a1b2c3d4-0008-4a01-9f01-000000000008}" Name="LKOSDocumentDate" DisplayName="Document Date" Type="DateTime" Format="DateOnly" Group="LKOS" Required="FALSE" />
+        <Field ID="{a1b2c3d4-0009-4a01-9f01-000000000009}" Name="LKOSConfidentiality" DisplayName="Confidentiality" Type="Choice" Group="LKOS" Required="FALSE">
+          <Default>Standard</Default>
+          <CHOICES>
+            <CHOICE>Standard</CHOICE>
+            <CHOICE>Privileged</CHOICE>
+            <CHOICE>Attorney Work Product</CHOICE>
+            <CHOICE>Sealed</CHOICE>
+          </CHOICES>
+        </Field>
+        <Field ID="{a1b2c3d4-0010-4a01-9f01-000000000010}" Name="LKOSRetentionLabel" DisplayName="Retention Label" Type="Text" Group="LKOS" Required="FALSE" />
+        <Field ID="{a1b2c3d4-0011-4a01-9f01-000000000011}" Name="LKOSAIIndexState" DisplayName="AI Index State" Type="Choice" Group="LKOS" Required="FALSE">
+          <Default>Pending</Default>
+          <CHOICES>
+            <CHOICE>Pending</CHOICE>
+            <CHOICE>Indexed</CHOICE>
+            <CHOICE>Excluded</CHOICE>
+          </CHOICES>
+        </Field>
+      </pnp:SiteFields>
+
+      <pnp:ContentTypes>
+        <pnp:ContentType ID="0x010100C1D2E3F4A5B6478899AABBCCDDEEFF00"
+                         Name="LKOS Matter Document"
+                         Group="LKOS"
+                         Description="Base content type for all documents in a matter site or the Litigation Knowledge Repository.">
+          <pnp:FieldRefs>
+            <pnp:FieldRef ID="{a1b2c3d4-0001-4a01-9f01-000000000001}" Name="LKOSMatterID" Required="true" />
+            <pnp:FieldRef ID="{a1b2c3d4-0002-4a01-9f01-000000000002}" Name="LKOSClientName" Required="true" />
+            <pnp:FieldRef ID="{a1b2c3d4-0003-4a01-9f01-000000000003}" Name="LKOSMatterName" />
+            <pnp:FieldRef ID="{a1b2c3d4-0004-4a01-9f01-000000000004}" Name="LKOSMatterStatus" Required="true" />
+            <pnp:FieldRef ID="{a1b2c3d4-0005-4a01-9f01-000000000005}" Name="LKOSPracticeArea" />
+            <pnp:FieldRef ID="{a1b2c3d4-0006-4a01-9f01-000000000006}" Name="LKOSLeadAttorney" />
+            <pnp:FieldRef ID="{a1b2c3d4-0007-4a01-9f01-000000000007}" Name="LKOSDocumentType" />
+            <pnp:FieldRef ID="{a1b2c3d4-0008-4a01-9f01-000000000008}" Name="LKOSDocumentDate" />
+            <pnp:FieldRef ID="{a1b2c3d4-0009-4a01-9f01-000000000009}" Name="LKOSConfidentiality" />
+            <pnp:FieldRef ID="{a1b2c3d4-0010-4a01-9f01-000000000010}" Name="LKOSRetentionLabel" />
+            <pnp:FieldRef ID="{a1b2c3d4-0011-4a01-9f01-000000000011}" Name="LKOSAIIndexState" />
+          </pnp:FieldRefs>
+        </pnp:ContentType>
+      </pnp:ContentTypes>
+
+    </pnp:ProvisioningTemplate>
+  </pnp:Templates>
+</pnp:Provisioning>

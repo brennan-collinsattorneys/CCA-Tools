@@ -72,12 +72,12 @@ no per-matter customization.
 
 ### Implementation for User Story 1
 
-- [ ] T011 [P] [US1] Author the Matter Team template in `templates/teams/matter-team-template.json` with standard channels: General, Administration, Pleadings, Discovery, Medical Records, Experts, Depositions, Motions, Trial, Settlement, AI Workspace
-- [ ] T012 [P] [US1] Author the Matter content type + metadata columns in `templates/sharepoint/matter-content-type.xml` from `config/matter-metadata-model.json`
-- [ ] T013 [US1] Author the SharePoint Matter Site template in `templates/sharepoint/matter-site-template.xml` (document libraries, metadata columns, versioning, retention settings) referencing the content type from T012
-- [ ] T014 [US1] Encode permission scheme/least-privilege roles into the site template in `templates/sharepoint/matter-site-template.xml`
-- [ ] T015 [US1] Add the standardized retention + versioning configuration to `templates/sharepoint/matter-site-template.xml`
-- [ ] T016 [US1] Document the template instantiation + verification steps for a single matter in `docs/provisioning-runbook.md`
+- [x] T011 [P] [US1] Author the Matter Team template in `templates/teams/matter-team-template.json` with standard channels: General, Administration, Pleadings, Discovery, Medical Records, Experts, Depositions, Motions, Trial, Settlement, AI Workspace
+- [x] T012 [P] [US1] Author the Matter content type + metadata columns in `templates/sharepoint/matter-content-type.xml` from `config/matter-metadata-model.json`
+- [x] T013 [US1] Author the SharePoint Matter Site template in `templates/sharepoint/matter-site-template.xml` (document libraries, metadata columns, versioning, retention settings) referencing the content type from T012
+- [x] T014 [US1] Encode permission scheme/least-privilege roles into the site template in `templates/sharepoint/matter-site-template.xml`
+- [x] T015 [US1] Add the standardized retention + versioning configuration to `templates/sharepoint/matter-site-template.xml`
+- [x] T016 [US1] Document the template instantiation + verification steps for a single matter in `docs/provisioning-runbook.md`
 
 **Checkpoint**: Templates exist and a single matter can be built from them with full standard structure.
 
