@@ -93,14 +93,14 @@ end-to-end, AI-ready matter is created with zero manual assembly.
 
 ### Implementation for User Story 2
 
-- [ ] T017 [P] [US2] Implement `src/provisioning/New-MatterTeam.ps1` to create a Team from `templates/teams/matter-team-template.json` and ensure all standard channels
-- [ ] T018 [P] [US2] Implement `src/provisioning/New-MatterSite.ps1` to apply `templates/sharepoint/matter-site-template.xml` (libraries, metadata, versioning, retention) and link it to the Team
-- [ ] T019 [P] [US2] Implement `src/provisioning/New-MatterSecurityGroups.ps1` to create/assign least-privilege security groups per `config/lkos-settings.json`
-- [ ] T020 [P] [US2] Implement `src/provisioning/Set-MatterMetadata.ps1` to apply the metadata model and stamp the Matter ID, enforcing the naming standard via `src/common/Lkos.Naming.ps1`
-- [ ] T021 [P] [US2] Implement `src/provisioning/Register-MatterAIPlaceholder.ps1` to emit the standardized AI registration placeholder (machine-readable marker enabling future OCR/semantic/vector/knowledge-graph indexing with no separate AI upload)
-- [ ] T022 [US2] Implement the orchestrator `src/provisioning/New-MatterWorkspace.ps1` to run the full single-workflow provisioning per `contracts/provisioning-contract.md` (calls T017–T021; optional Planner/Lists; connects via `Connect-LkosTenant.ps1`), guaranteeing idempotency
-- [ ] T023 [US2] Add provisioning error handling and idempotent re-run behavior (no duplicate Team/site; partial failures flagged for cleanup) across `src/provisioning/New-MatterWorkspace.ps1`
-- [ ] T024 [US2] Document the one-click provisioning command and inputs/outputs in `docs/provisioning-runbook.md` (aligned to `contracts/provisioning-contract.md`)
+- [x] T017 [P] [US2] Implement `src/provisioning/New-MatterTeam.ps1` to create a Team from `templates/teams/matter-team-template.json` and ensure all standard channels
+- [x] T018 [P] [US2] Implement `src/provisioning/New-MatterSite.ps1` to apply `templates/sharepoint/matter-site-template.xml` (libraries, metadata, versioning, retention) and link it to the Team
+- [x] T019 [P] [US2] Implement `src/provisioning/New-MatterSecurityGroups.ps1` to create/assign least-privilege security groups per `config/lkos-settings.json`
+- [x] T020 [P] [US2] Implement `src/provisioning/Set-MatterMetadata.ps1` to apply the metadata model and stamp the Matter ID, enforcing the naming standard via `src/common/Lkos.Naming.ps1`
+- [x] T021 [P] [US2] Implement `src/provisioning/Register-MatterAIPlaceholder.ps1` to emit the standardized AI registration placeholder (machine-readable marker enabling future OCR/semantic/vector/knowledge-graph indexing with no separate AI upload)
+- [x] T022 [US2] Implement the orchestrator `src/provisioning/New-MatterWorkspace.ps1` to run the full single-workflow provisioning per `contracts/provisioning-contract.md` (calls T017–T021; optional Planner/Lists; connects via `Connect-LkosTenant.ps1`), guaranteeing idempotency
+- [x] T023 [US2] Add provisioning error handling and idempotent re-run behavior (no duplicate Team/site; partial failures flagged for cleanup) across `src/provisioning/New-MatterWorkspace.ps1`
+- [x] T024 [US2] Document the one-click provisioning command and inputs/outputs in `docs/provisioning-runbook.md` (aligned to `contracts/provisioning-contract.md`)
 
 **Checkpoint**: A brand-new matter is fully provisioned and AI-ready from a single command.
 

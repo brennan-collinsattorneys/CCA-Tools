@@ -20,10 +20,39 @@ identical and standardized across **every** matter. Do not customize per matter.
 - App registration consented (see auth-setup.md).
 - Connected session: `./src/common/Connect-LkosTenant.ps1 -Mode AppOnly` (or `-Mode Interactive`).
 
-## Instantiate a single matter from the templates (verification flow)
+## One-click provisioning (recommended)
 
-> Until the orchestrator (`New-MatterWorkspace.ps1`, task T022) is built, you can validate the
-> templates manually with PnP/Graph as below.
+`New-MatterWorkspace.ps1` runs the entire flow in one command — security groups, Team + channels,
+SharePoint site, metadata/retention, and the AI registration placeholder:
+
+```powershell
+./src/provisioning/New-MatterWorkspace.ps1 `
+  -MatterId "2026-0142" `
+  -ClientLastName "Nguyen" `
+  -ShortDescription "MVA Personal Injury"
+```
+
+- Use `-WhatIf` for a dry run (prints what would happen, makes no changes).
+- The script is **idempotent**: re-running for the same `MatterId` reuses the existing Team,
+  groups, and site and reconciles them to the standard configuration.
+- It connects app-only via `config/lkos-settings.local.json`; no interactive sign-in needed.
+- Each stage (Connect, SecurityGroups, Team, Site, Metadata, AIRegistration) is reported; on
+  failure the script tells you exactly which stage failed so you can re-run to reconcile.
+
+### Building blocks (called by the orchestrator)
+
+| Script | Responsibility |
+|--------|----------------|
+| `New-MatterSecurityGroups.ps1` | Create/reuse Owners/Members/ReadOnly Entra security groups |
+| `New-MatterTeam.ps1` | Create/reuse Team + standard channels; resolve connected site |
+| `New-MatterSite.ps1` | Apply content type + site template (library, folders, perms, versioning, retention) |
+| `Set-MatterMetadata.ps1` | Stamp Matter ID/Client, set column defaults, apply retention label |
+| `Register-MatterAIPlaceholder.ps1` | Add AI registration record (matter is AI-ready) |
+
+## Instantiate a single matter from the templates (manual verification flow)
+
+> The orchestrator above is the normal path. The manual steps below are useful for validating
+> the templates in isolation during the pilot (US4).
 
 1. **Apply the content type** (site columns + content type) to the target site:
 
