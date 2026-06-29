@@ -24,7 +24,9 @@
 [CmdletBinding()]
 param(
     [string]$ApplicationName = "LKOS-Provisioning",
-    [Parameter(Mandatory)] [string]$TenantDomain
+    [Parameter(Mandatory)] [string]$TenantDomain,
+    # Use device-code sign-in (prints a URL + code) instead of launching a browser.
+    [switch]$DeviceLogin
 )
 
 $ErrorActionPreference = 'Stop'
@@ -35,15 +37,15 @@ if (-not (Get-Module -ListAvailable -Name PnP.PowerShell)) {
 
 Write-Host "Registering Entra ID app '$ApplicationName' in tenant '$TenantDomain'..." -ForegroundColor Cyan
 
-# Register-PnPEntraIDApp creates the app, a self-signed cert (CurrentUser\My), and uploads the
-# public key. Interactive sign-in is required so the operator consents to app creation.
-# Adjust -GraphApplicationPermissions / -SharePointApplicationPermissions to match
-# config/lkos-settings.json (use Sites.Selected for least privilege where feasible).
-$result = Register-PnPEntraIDApp `
-    -ApplicationName $ApplicationName `
-    -Tenant $TenantDomain `
-    -Store CurrentUser `
-    -GraphApplicationPermissions @(
+# Register-PnPEntraIDApp (PnP.PowerShell 3.x) creates the app, a self-signed cert in
+# Cert:\CurrentUser\My, and uploads the public key. Sign-in is interactive (browser by default,
+# or device code via -DeviceLogin). Adjust permissions to match config/lkos-settings.json
+# (prefer Sites.Selected for least privilege where feasible).
+$registerArgs = @{
+    ApplicationName               = $ApplicationName
+    Tenant                        = $TenantDomain
+    Store                         = 'CurrentUser'
+    GraphApplicationPermissions   = @(
         'Group.ReadWrite.All',
         'Directory.ReadWrite.All',
         'GroupMember.ReadWrite.All',
@@ -51,9 +53,12 @@ $result = Register-PnPEntraIDApp `
         'Channel.Create',
         'TeamSettings.ReadWrite.All',
         'Sites.FullControl.All'
-    ) `
-    -SharePointApplicationPermissions @('Sites.FullControl.All') `
-    -Interactive
+    )
+    SharePointApplicationPermissions = @('Sites.FullControl.All')
+}
+if ($DeviceLogin) { $registerArgs['DeviceLogin'] = $true }
+
+$result = Register-PnPEntraIDApp @registerArgs
 
 Write-Host "`nApp registration complete. Record these in config/lkos-settings.local.json:" -ForegroundColor Green
 $result | Format-List
