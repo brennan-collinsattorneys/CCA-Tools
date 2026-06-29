@@ -1,0 +1,128 @@
+{
+  "$comment": "Canonical LKOS metadata model. Applied to every Matter SharePoint site and the Litigation Knowledge Repository (where practical). Designed to be AI-indexable (OCR, metadata extraction, semantic indexing, future vector/knowledge-graph). Internal names are stable; do not rename once deployed.",
+  "version": "1.0.0",
+  "contentType": {
+    "name": "LKOS Matter Document",
+    "group": "LKOS",
+    "description": "Base content type for all documents stored in a matter site or the knowledge repository."
+  },
+  "columns": [
+    {
+      "internalName": "LKOSMatterID",
+      "displayName": "Matter ID",
+      "type": "Text",
+      "required": true,
+      "indexed": true,
+      "aiIndexable": true,
+      "description": "Firm matter number; ties the document to its matter."
+    },
+    {
+      "internalName": "LKOSClientName",
+      "displayName": "Client Name",
+      "type": "Text",
+      "required": true,
+      "indexed": true,
+      "aiIndexable": true
+    },
+    {
+      "internalName": "LKOSMatterName",
+      "displayName": "Matter Name",
+      "type": "Text",
+      "required": false,
+      "aiIndexable": true
+    },
+    {
+      "internalName": "LKOSMatterStatus",
+      "displayName": "Matter Status",
+      "type": "Choice",
+      "required": true,
+      "choices": ["Prospective", "Open", "Closed"],
+      "default": "Open",
+      "aiIndexable": true
+    },
+    {
+      "internalName": "LKOSPracticeArea",
+      "displayName": "Practice Area",
+      "type": "Choice",
+      "required": false,
+      "choices": [
+        "Personal Injury",
+        "Civil Rights",
+        "Medical Malpractice",
+        "Wrongful Death",
+        "Employment",
+        "General Litigation",
+        "Other"
+      ],
+      "aiIndexable": true
+    },
+    {
+      "internalName": "LKOSLeadAttorney",
+      "displayName": "Lead Attorney",
+      "type": "User",
+      "required": false,
+      "aiIndexable": true
+    },
+    {
+      "internalName": "LKOSDocumentType",
+      "displayName": "Document Type",
+      "type": "Choice",
+      "required": false,
+      "aiIndexable": true,
+      "choices": [
+        "Pleading",
+        "Discovery",
+        "Medical Record",
+        "Expert Report",
+        "Deposition",
+        "Motion",
+        "Correspondence",
+        "Contract/Agreement",
+        "Settlement",
+        "Trial Exhibit",
+        "Administrative",
+        "Other"
+      ],
+      "$comment": "Aligns with the standard matter Team channels."
+    },
+    {
+      "internalName": "LKOSDocumentDate",
+      "displayName": "Document Date",
+      "type": "DateTime",
+      "required": false,
+      "aiIndexable": true
+    },
+    {
+      "internalName": "LKOSConfidentiality",
+      "displayName": "Confidentiality",
+      "type": "Choice",
+      "required": false,
+      "choices": ["Standard", "Privileged", "Attorney Work Product", "Sealed"],
+      "default": "Standard",
+      "aiIndexable": true
+    },
+    {
+      "internalName": "LKOSRetentionLabel",
+      "displayName": "Retention Label",
+      "type": "Text",
+      "required": false,
+      "aiIndexable": false,
+      "description": "Reference to the applied Purview retention label; set by provisioning."
+    },
+    {
+      "internalName": "LKOSAIIndexState",
+      "displayName": "AI Index State",
+      "type": "Choice",
+      "required": false,
+      "choices": ["Pending", "Indexed", "Excluded"],
+      "default": "Pending",
+      "aiIndexable": false,
+      "description": "Drives the AI-ready pipeline; no separate AI-upload process is required."
+    }
+  ],
+  "aiRegistrationPlaceholder": {
+    "$comment": "Emitted per matter by Register-MatterAIPlaceholder.ps1. Marks the matter AI-ready so future OCR/semantic/vector/knowledge-graph indexing can consume it without a separate upload.",
+    "listName": "LKOS AI Registration",
+    "fields": ["LKOSMatterID", "LKOSAIIndexState", "SourceSiteUrl", "RegisteredDateTime"]
+  }
+}

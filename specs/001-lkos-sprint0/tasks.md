@@ -37,11 +37,11 @@ configuration in `config/`, inventory in `inventory/`, operator docs in `docs/`.
 that every later phase depends on.
 
 - [ ] T001 Create the repository folder structure per plan.md (`templates/teams/`, `templates/sharepoint/`, `src/provisioning/`, `src/migration/`, `src/conversion/powerautomate/`, `src/repository/`, `src/governance/`, `src/common/`, `config/`, `inventory/`, `docs/`)
-- [ ] T002 [P] Create `config/lkos-settings.json` (committed placeholders: tenant URLs, scopes, group naming, retention label IDs) and `config/lkos-settings.local.sample.json` (template for the git-ignored local file)
-- [ ] T003 🔶 MANUAL Register the Microsoft Entra ID app + certificate by running `src/common/Register-LkosEntraApp.ps1` (produces Client ID + certificate thumbprint); record values in `config/lkos-settings.local.json`
-- [ ] T004 🔶 MANUAL Have a Global/Privileged Role Administrator grant admin consent for the least-privilege Graph/SharePoint/Power Platform permissions on the app registration
-- [ ] T005 [P] Implement `src/common/Connect-LkosTenant.ps1` supporting both interactive (delegated) and certificate-based app-only connections to Microsoft Graph + PnP PowerShell
-- [ ] T006 [P] Author `docs/auth-setup.md` documenting the app registration, permissions/consent, certificate handling, and how each tool (PnP, Graph, `pac`) consumes the credential
+- [x] T002 [P] Create `config/lkos-settings.json` (committed placeholders: tenant URLs, scopes, group naming, retention label IDs) and `config/lkos-settings.local.sample.json` (template for the git-ignored local file)
+- [x] T003 🔶 MANUAL Register the Microsoft Entra ID app + certificate by running `src/common/Register-LkosEntraApp.ps1` (produces Client ID + certificate thumbprint); record values in `config/lkos-settings.local.json`
+- [x] T004 🔶 MANUAL Have a Global/Privileged Role Administrator grant admin consent for the least-privilege Graph/SharePoint/Power Platform permissions on the app registration
+- [x] T005 [P] Implement `src/common/Connect-LkosTenant.ps1` supporting both interactive (delegated) and certificate-based app-only connections to Microsoft Graph + PnP PowerShell
+- [x] T006 [P] Author `docs/auth-setup.md` documenting the app registration, permissions/consent, certificate handling, and how each tool (PnP, Graph, `pac`) consumes the credential
 
 ---
 
@@ -52,10 +52,10 @@ and provisioning/conversion path depends on.
 
 **⚠️ CRITICAL**: No matter Team/site can be standardized until these exist.
 
-- [ ] T007 [P] Define the canonical naming standard in `config/naming-standard.json` (`Matter Number – Client Last Name – Short Description`)
-- [ ] T008 [P] Define the canonical metadata model in `config/matter-metadata-model.json` (AI-indexable columns/terms shared by matter sites and the knowledge repository)
-- [ ] T009 Implement `src/common/Lkos.Naming.ps1` to validate/normalize matter display names against `config/naming-standard.json` (depends on T007)
-- [ ] T010 [P] Implement `src/common/Request-LkosApproval.ps1`, a reusable manual-approval checkpoint helper that pauses automation until a human approves (used by bulk, conversion, and cutover steps)
+- [x] T007 [P] Define the canonical naming standard in `config/naming-standard.json` (`Matter Number – Client Last Name – Short Description`)
+- [x] T008 [P] Define the canonical metadata model in `config/matter-metadata-model.json` (AI-indexable columns/terms shared by matter sites and the knowledge repository)
+- [x] T009 Implement `src/common/Lkos.Naming.ps1` to validate/normalize matter display names against `config/naming-standard.json` (depends on T007)
+- [x] T010 [P] Implement `src/common/Request-LkosApproval.ps1`, a reusable manual-approval checkpoint helper that pauses automation until a human approves (used by bulk, conversion, and cutover steps)
 
 **Checkpoint**: Standards, auth, and the approval gate are ready — template and provisioning work can begin.
 

@@ -1,0 +1,38 @@
+{
+  "$comment": "Canonical LKOS matter naming standard. Consumed by src/common/Lkos.Naming.ps1 and all provisioning paths. Pattern: 'Matter Number - Client Last Name - Short Description'.",
+  "version": "1.0.0",
+  "separator": " - ",
+  "displayNamePattern": "{MatterNumber} - {ClientLastName} - {ShortDescription}",
+  "components": {
+    "MatterNumber": {
+      "required": true,
+      "description": "Firm matter number / Matter ID.",
+      "validationRegex": "^[A-Za-z0-9][A-Za-z0-9._-]{0,31}$",
+      "normalize": "trim"
+    },
+    "ClientLastName": {
+      "required": true,
+      "description": "Client's last name (or organization short name).",
+      "validationRegex": "^[\\p{L}][\\p{L}\\p{M}'.\\- ]{0,63}$",
+      "normalize": "trim,titlecase"
+    },
+    "ShortDescription": {
+      "required": true,
+      "description": "Brief matter descriptor, e.g. 'MVA Personal Injury'.",
+      "maxLength": 60,
+      "normalize": "trim,collapse-whitespace"
+    }
+  },
+  "constraints": {
+    "$comment": "Applied to the final assembled display name. SharePoint/Teams disallow these characters in site/team names.",
+    "maxDisplayNameLength": 120,
+    "forbiddenCharacters": ["\\", "/", ":", "*", "?", "\"", "<", ">", "|", "#", "%", "&", "{", "}", "~"],
+    "collapseWhitespace": true
+  },
+  "derived": {
+    "$comment": "URL/alias-safe identifiers derived from the matter number for site URL and mail nickname.",
+    "siteAliasPattern": "matter-{MatterNumberSlug}",
+    "mailNicknamePattern": "matter-{MatterNumberSlug}",
+    "slugRule": "lowercase; replace any run of non [a-z0-9] with single hyphen; trim leading/trailing hyphens"
+  }
+}
