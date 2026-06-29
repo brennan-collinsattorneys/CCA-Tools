@@ -12,6 +12,12 @@ Thumbs.db
 .env.*
 config/lkos-settings.local.json
 
+# Certificates / private keys (never commit)
+*.pfx
+*.cer
+*.pem
+*.key
+
 # Populated matter inventory may contain client PII — keep only the template
 inventory/matter-inventory.xlsx
 
