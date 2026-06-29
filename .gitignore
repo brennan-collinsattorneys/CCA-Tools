@@ -1,0 +1,19 @@
+# Spec Kit / agent runtime
+.specify/feature.json
+
+# OS / editor cruft
+Thumbs.db
+.DS_Store
+*.swp
+
+# Local environment / secrets (do not commit tenant credentials)
+*.env
+.env
+.env.*
+config/lkos-settings.local.json
+
+# Populated matter inventory may contain client PII — keep only the template
+inventory/matter-inventory.xlsx
+
+# PowerShell module output / logs
+*.log
