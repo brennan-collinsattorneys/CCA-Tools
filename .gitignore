@@ -18,8 +18,10 @@ config/lkos-settings.local.json
 *.pem
 *.key
 
-# Populated matter inventory may contain client PII — keep only the template
+# Populated matter inventory may contain client PII — keep only the templates
 inventory/matter-inventory.xlsx
+inventory/*.draft.csv
+inventory/*.draft.xlsx
 
 # PowerShell module output / logs
 *.log
