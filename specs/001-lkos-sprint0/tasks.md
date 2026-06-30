@@ -247,6 +247,7 @@ permissions for most users, AI-indexing support, and no associated Team.
 - [ ] T055 [P] Verify the spec quality checklist `specs/001-lkos-sprint0/checklists/requirements.md` and Definition of Done from spec.md (all Open matters have Teams + sites; provisioning automated; repository exists; legacy freeze active; auth via Entra app; manual gates enforced)
 - [ ] T056 Confirm the legacy Clients Team is repurposed to intake/referrals/administration only, per `docs/legacy-clients-team-policy.md`
 - [ ] T057 [P] Run `quickstart.md` end-to-end as an acceptance pass for the operator runbook
+- [x] T058 Implement `src/migration/Update-AllMatters.ps1` to push additive template changes to all existing matters in-place (idempotent reconcile of channels + site config + permissions, behind a manual approval gate). Live-validated.
 
 ---
 

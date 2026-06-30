@@ -49,6 +49,23 @@ SharePoint site, metadata/retention, and the AI registration placeholder:
 | `Set-MatterMetadata.ps1` | Stamp Matter ID/Client, set column defaults, apply retention label |
 | `Register-MatterAIPlaceholder.ps1` | Add AI registration record (matter is AI-ready) |
 
+## Update existing matters to the current template (in-place reconcile)
+
+When the standard template changes, push **additive** changes to every existing matter:
+
+```powershell
+./src/migration/Update-AllMatters.ps1            # all matters (interactive approval gate)
+./src/migration/Update-AllMatters.ps1 -MatterAlias 'matter-2026-0142' -WhatIf   # one matter, dry run
+```
+
+- Discovers matters by the `matter-` alias prefix (test matters excluded unless `-IncludeTestMatters`).
+- Pauses at a **manual approval gate** (touches every matter); `-AutoApprove` for scheduled runs.
+- For each matter: ensures the standard channels and re-applies the standard site configuration
+  (content type, library, channel folders, AI list, metadata defaults, least-privilege permissions).
+- **Additive only**: it adds what is missing. It does **not** rename or delete existing channels,
+  columns, libraries, or content, and it does not restructure existing documents — rename/removal
+  changes require deliberate one-off migrations. Keep template changes additive where possible.
+
 ## Instantiate a single matter from the templates (manual verification flow)
 
 > The orchestrator above is the normal path. The manual steps below are useful for validating
