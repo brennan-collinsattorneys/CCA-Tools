@@ -138,8 +138,8 @@ $summary.TeamId  = $team.TeamId
 # --- Site template ---
 Invoke-Stage 'Site' {
     & (Join-Path $here 'New-MatterSite.ps1') -SiteUrl $team.SiteUrl -MatterId $MatterId `
-        -OwnersGroup $groups['Owners'].DisplayName -MembersGroup $groups['Members'].DisplayName `
-        -ReadOnlyGroup $groups['ReadOnly'].DisplayName -RetentionLabel $retentionLabel
+        -OwnersGroupId $groups['Owners'].Id -MembersGroupId $groups['Members'].Id `
+        -ReadOnlyGroupId $groups['ReadOnly'].Id -RetentionLabel $retentionLabel
 }
 
 # --- Metadata + retention ---

@@ -17,17 +17,18 @@
 
 .PARAMETER SiteUrl          The matter's connected SharePoint site URL.
 .PARAMETER MatterId         Firm matter number.
-.PARAMETER OwnersGroup / MembersGroup / ReadOnlyGroup
-    Display names of the per-matter security groups (from New-MatterSecurityGroups).
+.PARAMETER OwnersGroupId / MembersGroupId / ReadOnlyGroupId
+    Entra ID object ids of the per-matter security groups (from New-MatterSecurityGroups).
+    Bound to the site as Full Control / Edit / Read respectively.
 .PARAMETER RetentionLabel   Purview retention label name (applied by Set-MatterMetadata).
 #>
 [CmdletBinding(SupportsShouldProcess)]
 param(
     [Parameter(Mandatory)] [string]$SiteUrl,
     [Parameter(Mandatory)] [string]$MatterId,
-    [Parameter(Mandatory)] [string]$OwnersGroup,
-    [Parameter(Mandatory)] [string]$MembersGroup,
-    [Parameter(Mandatory)] [string]$ReadOnlyGroup,
+    [Parameter(Mandatory)] [string]$OwnersGroupId,
+    [Parameter(Mandatory)] [string]$MembersGroupId,
+    [Parameter(Mandatory)] [string]$ReadOnlyGroupId,
     [string]$RetentionLabel = ''
 )
 
@@ -55,9 +56,21 @@ if (-not $PSCmdlet.ShouldProcess($SiteUrl, 'Apply LKOS site configuration')) {
 
 Connect-PnPOnline -Url $SiteUrl -ClientId $cfg.clientId -Tenant $cfg.tenantId -Thumbprint $cfg.certificateThumbprint
 
-# 1) Site columns + content type (validated provisioning XML).
+# 1) Site columns + content type (validated provisioning XML). Retry: a freshly created site can
+#    briefly return transient errors (e.g. "Error while copying content to a stream").
 Write-Host "Applying content type to $SiteUrl ..." -ForegroundColor Cyan
-Invoke-PnPSiteTemplate -Path $ctPath
+$ctApplied = $false
+for ($attempt = 1; $attempt -le 5 -and -not $ctApplied; $attempt++) {
+    try {
+        Invoke-PnPSiteTemplate -Path $ctPath -ErrorAction Stop
+        $ctApplied = $true
+    } catch {
+        if ($attempt -eq 5) { throw }
+        Write-Warning "Content type apply attempt $attempt failed ($($_.Exception.Message)); retrying in 15s..."
+        Start-Sleep -Seconds 15
+        Connect-PnPOnline -Url $SiteUrl -ClientId $cfg.clientId -Tenant $cfg.tenantId -Thumbprint $cfg.certificateThumbprint
+    }
+}
 
 # 2) Matter Documents library.
 Write-Host "Configuring '$LibraryTitle' library ..." -ForegroundColor Cyan
@@ -92,16 +105,25 @@ foreach ($siteField in 'LKOSMatterID','LKOSAIIndexState') {
 try { Add-PnPField -List $AiListTitle -DisplayName 'Source Site URL' -InternalName 'SourceSiteUrl' -Type URL -ErrorAction Stop | Out-Null } catch { }
 try { Add-PnPField -List $AiListTitle -DisplayName 'Registered' -InternalName 'RegisteredDateTime' -Type DateTime -ErrorAction Stop | Out-Null } catch { }
 
-# 4) Least-privilege permissions (break inheritance + bind per-matter groups). Best-effort:
-#    binding Entra security groups by display name is finalized/validated during the US4 pilot.
+# 4) Least-privilege permissions: bind each per-matter Entra security group directly to a role
+#    on the site's root web. Entra groups are referenced via the SharePoint claims login format
+#    'c:0t.c|tenant|<groupObjectId>'; New-PnPUser ensures the principal before the role assignment.
 Write-Host "Applying least-privilege permissions ..." -ForegroundColor Cyan
-try {
-    Set-PnPWebPermission -InheritPermissions:$false -ErrorAction SilentlyContinue
-    foreach ($pair in @(@{G=$OwnersGroup;R='Full Control'}, @{G=$MembersGroup;R='Edit'}, @{G=$ReadOnlyGroup;R='Read'})) {
-        try { Set-PnPWebPermission -Group $pair.G -AddRole $pair.R -ErrorAction Stop }
-        catch { Write-Warning "Permission bind for '$($pair.G)' ($($pair.R)) deferred to pilot: $($_.Exception.Message)" }
+$bindings = @(
+    [pscustomobject]@{ Label = 'Owners';   Id = $OwnersGroupId;   Role = 'Full Control' },
+    [pscustomobject]@{ Label = 'Members';  Id = $MembersGroupId;  Role = 'Edit' },
+    [pscustomobject]@{ Label = 'ReadOnly'; Id = $ReadOnlyGroupId; Role = 'Read' }
+)
+foreach ($b in $bindings) {
+    $login = "c:0t.c|tenant|$($b.Id)"
+    try {
+        New-PnPUser -LoginName $login -ErrorAction Stop | Out-Null
+        Set-PnPWebPermission -User $login -AddRole $b.Role -ErrorAction Stop
+        Write-Host "  $($b.Label) group -> $($b.Role)" -ForegroundColor Green
+    } catch {
+        Write-Warning "  Permission bind for $($b.Label) ($($b.Role)) failed: $($_.Exception.Message)"
     }
-} catch { Write-Warning "Permission configuration deferred to pilot: $($_.Exception.Message)" }
+}
 
 Write-Host "Site configuration applied to $SiteUrl." -ForegroundColor Green
 return [pscustomobject]@{ SiteUrl = $SiteUrl; Applied = $true }
