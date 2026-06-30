@@ -7,5 +7,6 @@
   "clientId": "00000000-0000-0000-0000-000000000000",
   "certificateThumbprint": "0000000000000000000000000000000000000000",
   "powerPlatformEnvironmentUrl": "https://<env>.crm.dynamics.com",
-  "legacyClientsTeamId": "<legacy-clients-team-id>"
+  "legacyClientsTeamId": "<legacy-clients-team-id>",
+  "defaultTeamOwnerUpn": "<owner-upn@your-tenant.onmicrosoft.com>"
 }

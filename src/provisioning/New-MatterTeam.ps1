@@ -4,25 +4,24 @@
     Creates (or reuses) the standardized Matter Team and its standard channels.
 
 .DESCRIPTION
-    Reads templates/teams/matter-team-template.json, applies the matter tokens, creates the Team
-    (Microsoft 365 group + connected SharePoint site) and ensures the standardized channel set.
-    Idempotent: an existing Team with the same mail nickname is reused and missing channels added.
+    Reads templates/teams/matter-team-template.json and creates the matter Team using the robust
+    app-only pattern: create the Microsoft 365 group WITH an owner bound at creation, enable the
+    Team on the group, then ensure the standardized channel set. This avoids the TeamMember API
+    (which needs TeamMember.ReadWrite.All); it only requires Group.ReadWrite.All / Channel.Create.
 
-    Requires an active PnP connection (Connect-LkosTenant) with Team.Create / Group.ReadWrite.All
-    / Channel.Create consented.
+    Idempotent: an existing group with the same mail nickname is reused and missing channels added.
+    Requires an active PnP connection (Connect-LkosTenant).
 
 .PARAMETER MatterDisplayName
     Standardized display name (from New-LkosMatterName).
-
 .PARAMETER MatterId
     Firm matter number.
-
 .PARAMETER ClientName
     Client name (for description).
-
 .PARAMETER MailNickname
     URL/alias-safe nickname (from New-LkosMatterName, e.g. matter-2026-0142).
-
+.PARAMETER Owners
+    One or more owner UPNs (required for app-only Team creation).
 .PARAMETER TemplatePath
     Path to the Team template JSON.
 
@@ -35,6 +34,7 @@ param(
     [Parameter(Mandatory)] [string]$MatterId,
     [Parameter(Mandatory)] [string]$ClientName,
     [Parameter(Mandatory)] [string]$MailNickname,
+    [Parameter(Mandatory)] [string[]]$Owners,
     [string]$TemplatePath
 )
 
@@ -52,34 +52,81 @@ $description = $template.description `
     -replace '\{\{MatterId\}\}', $MatterId `
     -replace '\{\{ClientName\}\}', $ClientName
 
-# --- Idempotency: find existing group by mailNickname ---
-$escaped  = $MailNickname.Replace("'", "''")
-$existing = Invoke-PnPGraphMethod -Url "v1.0/groups?`$filter=mailNickname eq '$escaped'" -Method Get
-$teamId   = $null
+function Get-GroupIdByNickname {
+    param([string]$Nickname)
+    $esc = $Nickname.Replace("'", "''")
+    $resp = Invoke-PnPGraphMethod -Url "v1.0/groups?`$filter=mailNickname eq '$esc'&`$select=id" -Method Get
+    if ($resp -and $resp.PSObject.Properties.Name -contains 'value' -and @($resp.value).Count -gt 0) {
+        return $resp.value[0].id
+    }
+    return $null
+}
 
-if ($existing.value -and $existing.value.Count -gt 0) {
-    $teamId = $existing.value[0].id
+# --- Idempotency: reuse an existing group by mailNickname ---
+$teamId = Get-GroupIdByNickname -Nickname $MailNickname
+
+if ($teamId) {
     Write-Host "Reusing existing Team/group '$MailNickname' ($teamId)." -ForegroundColor DarkYellow
 }
 elseif ($PSCmdlet.ShouldProcess($MatterDisplayName, 'Create Matter Team')) {
-    $team = New-PnPTeamsTeam -DisplayName $MatterDisplayName -MailNickname $MailNickname `
-        -Description $description -Visibility ([string]$template.visibility)
-    $teamId = $team.GroupId
-    if (-not $teamId) { $teamId = $team.Id }
-    Write-Host "Created Team '$MatterDisplayName' ($teamId)." -ForegroundColor Green
+
+    # Resolve owner object id (owners must be bound at group creation for app-only).
+    $ownerUpn = $Owners[0]
+    $ownerObj = Invoke-PnPGraphMethod -Url "v1.0/users/$ownerUpn`?`$select=id" -Method Get
+    $ownerId  = $ownerObj.id
+    if (-not $ownerId) { throw "Could not resolve owner '$ownerUpn' to a user object id." }
+
+    # 1) Create the M365 group with the owner bound.
+    $groupBody = @{
+        displayName         = $MatterDisplayName
+        mailNickname        = $MailNickname
+        description         = $description
+        groupTypes          = @('Unified')
+        mailEnabled         = $true
+        securityEnabled     = $false
+        visibility          = 'Private'
+        'owners@odata.bind' = @("https://graph.microsoft.com/v1.0/users/$ownerId")
+    }
+    $created = Invoke-PnPGraphMethod -Url 'v1.0/groups' -Method Post -Content $groupBody
+    $teamId  = $created.id
+    Write-Host "Created group '$MatterDisplayName' ($teamId). Enabling Team..." -ForegroundColor Green
+
+    # 2) Enable the Team on the group (retry while the group replicates).
+    $teamBody = @{
+        memberSettings    = $template.memberSettings
+        guestSettings     = $template.guestSettings
+        messagingSettings = $template.messagingSettings
+        funSettings       = $template.funSettings
+    }
+    $enabled = $false
+    for ($i = 0; $i -lt 15 -and -not $enabled; $i++) {
+        try {
+            Invoke-PnPGraphMethod -Url "v1.0/groups/$teamId/team" -Method Put -Content $teamBody | Out-Null
+            $enabled = $true
+        } catch {
+            Start-Sleep -Seconds 10
+        }
+    }
+    if (-not $enabled) { throw "Group created but Team enablement did not succeed in time; re-run to reconcile." }
+    Write-Host "Team enabled for '$MatterDisplayName'." -ForegroundColor Green
 }
 
-# --- Ensure standardized channels ---
+# --- Ensure standardized channels (Graph) ---
 if ($teamId -and $PSCmdlet.ShouldProcess($MatterDisplayName, 'Ensure standard channels')) {
     $existingChannels = @()
-    try { $existingChannels = (Get-PnPTeamsChannel -Team $teamId).DisplayName } catch { $existingChannels = @() }
+    try {
+        $ch = Invoke-PnPGraphMethod -Url "v1.0/teams/$teamId/channels?`$select=displayName" -Method Get
+        if ($ch -and $ch.PSObject.Properties.Name -contains 'value') { $existingChannels = @($ch.value.displayName) }
+    } catch { $existingChannels = @() }
 
     foreach ($channel in $template.channels) {
-        if ($channel.displayName -eq 'General') { continue }  # created by default
+        if ($channel.displayName -eq 'General') { continue }
         if ($existingChannels -contains $channel.displayName) { continue }
         try {
-            Add-PnPTeamsChannel -Team $teamId -DisplayName $channel.displayName -Description ([string]$channel.description) | Out-Null
+            $body = @{ displayName = $channel.displayName; description = [string]$channel.description }
+            Invoke-PnPGraphMethod -Url "v1.0/teams/$teamId/channels" -Method Post -Content $body | Out-Null
             Write-Host "  + channel '$($channel.displayName)'" -ForegroundColor Green
+            Start-Sleep -Milliseconds 800
         } catch {
             Write-Warning "  ! channel '$($channel.displayName)' could not be added: $($_.Exception.Message)"
         }

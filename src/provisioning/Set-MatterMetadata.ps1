@@ -39,28 +39,26 @@ $cfg      = Get-Content (Join-Path $repoRoot 'config/lkos-settings.local.json') 
 if ($PSCmdlet.ShouldProcess($SiteUrl, 'Stamp matter metadata')) {
     Connect-PnPOnline -Url $SiteUrl -ClientId $cfg.clientId -Tenant $cfg.tenantId -Thumbprint $cfg.certificateThumbprint
 
-    # Site property bag (queryable identity markers).
-    Set-PnPPropertyBagValue -Key 'LKOS_MatterID'    -Value $MatterId   -ErrorAction SilentlyContinue
-    Set-PnPPropertyBagValue -Key 'LKOS_ClientName'  -Value $ClientName -ErrorAction SilentlyContinue
-    if ($MatterName) { Set-PnPPropertyBagValue -Key 'LKOS_MatterName' -Value $MatterName -ErrorAction SilentlyContinue }
-
-    # Ensure library column defaults reflect this matter.
+    # Ensure library column defaults reflect this matter (idempotent; primary identity stamping).
     try {
-        Set-PnPDefaultColumnValues -List $LibraryTitle -Field 'LKOSMatterID'   -Value $MatterId
-        Set-PnPDefaultColumnValues -List $LibraryTitle -Field 'LKOSClientName' -Value $ClientName
+        Set-PnPDefaultColumnValues -List $LibraryTitle -Field 'LKOSMatterID'     -Value $MatterId
+        Set-PnPDefaultColumnValues -List $LibraryTitle -Field 'LKOSClientName'   -Value $ClientName
         Set-PnPDefaultColumnValues -List $LibraryTitle -Field 'LKOSMatterStatus' -Value 'Open'
     } catch {
         Write-Warning "Could not set default column values: $($_.Exception.Message)"
     }
 
     # Apply Purview retention label to the library (best-effort; tenant must define the label).
-    if ($RetentionLabel) {
+    # Skip unconfigured/placeholder values to avoid stalling on a non-existent label.
+    if ($RetentionLabel -and $RetentionLabel -notlike '<*>') {
         try {
-            Set-PnPLabel -List $LibraryTitle -Label $RetentionLabel -SyncToItems $true
+            Set-PnPLabel -List $LibraryTitle -Label $RetentionLabel -SyncToItems $false
             Write-Host "Applied retention label '$RetentionLabel' to '$LibraryTitle'." -ForegroundColor Green
         } catch {
             Write-Warning "Retention label '$RetentionLabel' not applied (define it in Purview): $($_.Exception.Message)"
         }
+    } else {
+        Write-Host "No retention label configured (set config retention.matterRetentionLabelId); skipping." -ForegroundColor DarkYellow
     }
 
     Write-Host "Metadata stamped on $SiteUrl." -ForegroundColor Green

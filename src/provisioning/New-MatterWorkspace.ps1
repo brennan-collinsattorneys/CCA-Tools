@@ -70,6 +70,17 @@ $retentionLabel = ''
 if ($base.retention.PSObject.Properties.Name -contains 'matterRetentionLabelId') {
     $retentionLabel = [string]$base.retention.matterRetentionLabelId
 }
+# Treat unfilled placeholders (e.g. "<retention-label-id>") as not configured.
+if ($retentionLabel -like '<*>') { $retentionLabel = '' }
+
+# App-only Team creation requires an owner. Use the LeadAttorney if supplied, otherwise the
+# tenant's default provisioning owner from config/lkos-settings.local.json.
+$defaultOwner = $null
+if ($local.PSObject.Properties.Name -contains 'defaultTeamOwnerUpn') { $defaultOwner = [string]$local.defaultTeamOwnerUpn }
+$teamOwner = if ($LeadAttorney) { $LeadAttorney } else { $defaultOwner }
+if ([string]::IsNullOrWhiteSpace($teamOwner) -or $teamOwner -like '<*>') {
+    throw "No Team owner available. Provide -LeadAttorney <upn> or set 'defaultTeamOwnerUpn' in config/lkos-settings.local.json (app-only Team creation requires an owner)."
+}
 
 # --- Resolve standardized naming ---
 . (Join-Path $common 'Lkos.Naming.ps1')
@@ -85,15 +96,17 @@ $summary = [ordered]@{
 }
 
 function Invoke-Stage {
-    param([string]$Name, [scriptblock]$Action)
-    Write-Host "-- $Name --" -ForegroundColor Cyan
+    param([string]$StageName, [scriptblock]$Action)
+    Write-Host "-- $StageName --" -ForegroundColor Cyan
     try {
         $out = & $Action
-        $summary.Steps[$Name] = 'OK'
+        $summary.Steps[$StageName] = 'OK'
         return $out
     } catch {
-        $summary.Steps[$Name] = "FAILED: $($_.Exception.Message)"
-        Write-Error "Stage '$Name' failed: $($_.Exception.Message)"
+        $summary.Steps[$StageName] = "FAILED: $($_.Exception.Message)"
+        Write-Host "Stage '$StageName' failed: $($_.Exception.Message)" -ForegroundColor Red
+        Write-Host "--- stack ---" -ForegroundColor DarkGray
+        Write-Host $_.ScriptStackTrace -ForegroundColor DarkGray
         throw
     }
 }
@@ -116,7 +129,7 @@ $groups = Invoke-Stage 'SecurityGroups' {
 # --- Team + channels ---
 $team = Invoke-Stage 'Team' {
     & (Join-Path $here 'New-MatterTeam.ps1') -MatterDisplayName $name.DisplayName -MatterId $MatterId `
-        -ClientName $ClientName -MailNickname $name.MailNickname
+        -ClientName $ClientName -MailNickname $name.MailNickname -Owners @($teamOwner)
 }
 if (-not $team.SiteUrl) { throw "Connected site URL not resolved; cannot apply site template yet. Re-run to reconcile." }
 $summary.SiteUrl = $team.SiteUrl

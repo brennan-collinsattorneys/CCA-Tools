@@ -52,18 +52,27 @@ if (-not $SiteUrl) { $SiteUrl = $cfg.sharePointRootUrl }
 
 Write-Host "Connecting to LKOS tenant ($Mode mode)..." -ForegroundColor Cyan
 
+# PnP PowerShell provides Graph access via Invoke-PnPGraphMethod, so the Microsoft.Graph SDK is
+# optional. Connect it only when the module is installed (useful for Graph-SDK-specific cmdlets).
+$graphSdkAvailable = [bool](Get-Module -ListAvailable -Name Microsoft.Graph.Authentication)
+
 switch ($Mode) {
     'Interactive' {
-        Connect-MgGraph -ClientId $cfg.clientId -TenantId $cfg.tenantId -NoWelcome
         Connect-PnPOnline -Url $SiteUrl -Interactive -ClientId $cfg.clientId
+        if ($graphSdkAvailable) {
+            Connect-MgGraph -ClientId $cfg.clientId -TenantId $cfg.tenantId -NoWelcome
+        }
     }
     'AppOnly' {
         if ([string]::IsNullOrWhiteSpace($cfg.certificateThumbprint)) {
             throw "AppOnly mode requires 'certificateThumbprint' in config/lkos-settings.local.json."
         }
-        Connect-MgGraph -ClientId $cfg.clientId -TenantId $cfg.tenantId -CertificateThumbprint $cfg.certificateThumbprint -NoWelcome
         Connect-PnPOnline -Url $SiteUrl -ClientId $cfg.clientId -Tenant $cfg.tenantId -Thumbprint $cfg.certificateThumbprint
+        if ($graphSdkAvailable) {
+            Connect-MgGraph -ClientId $cfg.clientId -TenantId $cfg.tenantId -CertificateThumbprint $cfg.certificateThumbprint -NoWelcome
+        }
     }
 }
 
-Write-Host "Connected to Graph and SharePoint ($SiteUrl)." -ForegroundColor Green
+$graphNote = if ($graphSdkAvailable) { ' (+ Microsoft.Graph SDK)' } else { ' (Graph via PnP)' }
+Write-Host "Connected to SharePoint ($SiteUrl)$graphNote." -ForegroundColor Green
