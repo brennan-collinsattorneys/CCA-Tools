@@ -49,6 +49,31 @@ SharePoint site, metadata/retention, and the AI registration placeholder:
 | `Set-MatterMetadata.ps1` | Stamp Matter ID/Client, set column defaults, apply retention label |
 | `Register-MatterAIPlaceholder.ps1` | Add AI registration record (matter is AI-ready) |
 
+## Matter inventory (authoritative migration source)
+
+The inventory is the single source of truth for classification, bulk provisioning, and migration.
+
+1. Templates live in `inventory/`:
+   - `matter-inventory.template.xlsx` — Excel with a **Status dropdown** (regenerate via
+     `src/migration/New-InventoryTemplate.ps1`).
+   - `matter-inventory.template.csv` — git-friendly equivalent.
+2. **PM**: copy a template to `inventory/matter-inventory.xlsx` (git-ignored — may contain client
+   PII) and fill in one row per matter; classify each as **Prospective / Open / Closed**
+   (`Intake` is accepted and normalized to Prospective).
+3. Validate and preview at any time:
+
+```powershell
+# Validation summary only (no output object)
+./src/migration/Import-MatterInventory.ps1 -ReportOnly
+
+# Get the validated Open set (Sprint 0 scope) — this is what bulk provisioning consumes
+$open = ./src/migration/Import-MatterInventory.ps1 -Status Open
+```
+
+The importer **throws on validation errors** (missing columns, invalid status, duplicate Matter
+IDs) so bulk provisioning never runs on bad data. Each returned matter is enriched with
+`ClientLastName` and `ShortDescription` so it can feed `New-MatterWorkspace.ps1` directly.
+
 ## Update existing matters to the current template (in-place reconcile)
 
 When the standard template changes, push **additive** changes to every existing matter:
