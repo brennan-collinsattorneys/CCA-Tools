@@ -239,6 +239,33 @@ explicit human approval.
 
 ---
 
+### User Story 10 - Rename/Removal Template Reconcile (Priority: P2)
+
+After matters are created, the firm can evolve the standardized template and roll the changes out
+to all existing matters in-place. Additive changes propagate via an idempotent reconcile;
+rename and removal changes are applied through an explicit change-set with safety guardrails.
+
+**Why this priority**: Without this, the firm is effectively locked into the first template
+version (additive-only), forcing template perfection before any matter is created. This removes
+that blocker while protecting against accidental data loss.
+
+**Independent Test**: Define a change-set that renames one channel/column and removes one empty
+channel; run it against a test matter and confirm the rename applies, the empty removal succeeds,
+and a non-empty removal is blocked unless explicitly forced.
+
+**Acceptance Scenarios**:
+
+1. **Given** an additive template change, **When** the reconcile runs, **Then** every existing
+   matter gains the new channel/library/column without duplications.
+2. **Given** a rename change-set, **When** it runs, **Then** the targeted channels/column display
+   names are renamed in place across matters (internal identifiers preserved).
+3. **Given** a removal change-set for a non-empty object, **When** it runs without force, **Then**
+   the removal is blocked and reported; with explicit force and approval it proceeds.
+4. **Given** any destructive change-set, **When** it runs, **Then** a content report and an
+   approval gate precede execution.
+
+---
+
 ### Edge Cases
 
 - What happens when a matter's status is ambiguous (e.g., dormant or partially closed)? It
@@ -316,6 +343,11 @@ explicit human approval.
   open matters, (b) before each channel-to-workspace conversion batch, and (c) before legacy
   links/content are removed (cutover verification). Automated steps MUST pause at these gates
   until approved.
+- **FR-022**: The system MUST be able to apply template changes to already-provisioned matters
+  in-place. Additive changes (new channels, libraries, metadata columns, folders) MUST be
+  pushable firm-wide via an idempotent reconcile. Rename and removal changes MUST be supported
+  via an explicit, declarative change-set with a content report, a mandatory approval gate, and
+  protection against deleting non-empty objects without explicit confirmation.
 
 ### Key Entities *(include if feature involves data)*
 

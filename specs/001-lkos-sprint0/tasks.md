@@ -239,7 +239,35 @@ permissions for most users, AI-indexing support, and no associated Team.
 
 ---
 
-## Phase 12: Polish & Cross-Cutting Concerns
+## Phase 12: User Story 10 - Rename/Removal Template Reconcile (Priority: P2)
+
+**Goal**: Apply **rename** and **removal** template changes to existing matters in-place, safely —
+so the firm is not locked into the first template version. Complements the additive
+`Update-AllMatters.ps1` (T058), which only adds.
+
+**Independent Test**: Define a change-set that renames one channel/column and removes one empty
+channel; run against a disposable test matter and confirm the rename applies, the empty removal
+succeeds, and a non-empty removal is blocked unless explicitly forced.
+
+**⚠️ Safety**: Removals risk data loss. All destructive operations require a content report,
+a mandatory approval gate, and never delete non-empty objects without explicit `-Force`.
+
+### Implementation for User Story 10
+
+- [ ] T059 [US10] Define a declarative change-set format `config/template-changeset.json` capturing `rename` and `remove` operations for channels, metadata columns, and libraries, stamped with from/to template versions
+- [ ] T060 [US10] Implement rename reconcile in `src/migration/Update-MatterTemplateChanges.ps1`: rename Team channels (Graph PATCH) and SharePoint column **display names** per the change-set (internal names are immutable); idempotent
+- [ ] T061 [US10] Implement guarded removal reconcile: remove channels/columns/libraries only when empty, or with explicit `-Force` after a content report; never silent data loss
+- [ ] T062 [US10] Add a pre-change content report + backup export (affected channels/columns and item counts) and a mandatory `Request-LkosApproval.ps1` gate per change-set
+- [ ] T063 [US10] Add `-WhatIf`/dry-run that previews every rename/removal across all matters before execution
+- [ ] T064 [US10] Live-validate rename + guarded removal against a disposable test matter; document in `docs/template-change-runbook.md`
+- [ ] T065 [US10] 🔶 MANUAL Review and approve each destructive change-set before firm-wide execution
+
+**Checkpoint**: Rename/removal template changes can be rolled out firm-wide with human oversight
+and no accidental data loss — the firm is no longer blocked on getting the template perfect first.
+
+---
+
+## Phase 13: Polish & Cross-Cutting Concerns
 
 **Purpose**: Finalize documentation, governance, and Definition-of-Done verification.
 
