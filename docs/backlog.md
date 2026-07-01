@@ -3,19 +3,11 @@
 A living list of decisions to figure out and workstreams deferred beyond Sprint 0. Update as items
 are resolved (move to Done or into `specs/.../tasks.md` when they become concrete work).
 
-Last updated: 2026-07-01
+Last updated: 2026-07-01 (channel template approved — see D1)
 
 ---
 
 ## A. Open decisions / awaiting input
-
-### A1. Standard channel template sign-off
-- **What**: Confirm the standard 11-channel matter template (General, Administration, Pleadings,
-  Discovery, Medical Records, Experts, Depositions, Motions, Trial, Settlement, AI Workspace).
-- **Why it matters**: Renames/removals across existing matters need the destructive reconcile
-  (see B3); additive changes are easy. Best to finalize before bulk creation.
-- **Owner / next step**: Stakeholder review (test matter left in place for this).
-- **Status**: Awaiting stakeholder validation.
 
 ### A2. Legacy "C&C- Civil Rights" channel classification
 Draft inventory built at `inventory/civil-rights-inventory.draft.csv` (local, git-ignored — PII).
@@ -90,12 +82,12 @@ Open questions before conversion:
 ### B3. Rename/removal template reconcile (US10)
 - **What**: Build the destructive change-set reconcile (rename/remove channels, columns,
   libraries) with content report + approval gate. Tasks **T059–T065** are specced but not built.
-- **Status**: Specced, not implemented. Recommend template sign-off (A1) first.
+- **Status**: Specced, not implemented. Channel template is approved (see D1); lower priority now.
 
 ### B4. Power Automate channel-to-workspace conversion (US9)
 - **What**: Build the human-gated conversion flow that turns legacy channels into standardized
   matter workspaces. Tasks **T036–T041**.
-- **Status**: Specced, not implemented; depends on A1/A2.
+- **Status**: Specced, not implemented; depends on A2 (channel classification).
 
 ### B5 & B6. Litigation Knowledge Repository + closed-matter migration (US8)
 - **What**: Stand up the read-only, AI-indexable repository (T050–T053); closed-matter content
@@ -114,3 +106,12 @@ Open questions before conversion:
 - PM populates `inventory/matter-inventory.xlsx` (git-ignored) and classifies each matter
   (Eval / Pre-Litigation / Litigation / Closed). Importer validates instantly.
 - **Status**: Awaiting PM data.
+
+---
+
+## D. Resolved
+
+### D1. Standard channel template sign-off — APPROVED (2026-07-01)
+Stakeholder approved the standard 11-channel matter template (General, Administration, Pleadings,
+Discovery, Medical Records, Experts, Depositions, Motions, Trial, Settlement, AI Workspace) after
+reviewing the test workspace. The current template is cleared for use.
