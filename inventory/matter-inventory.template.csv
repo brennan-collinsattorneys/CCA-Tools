@@ -1,4 +1,5 @@
 Matter ID,Matter Name,Client Name,Client Last Name,Short Description,Status,Lead Attorney,Assigned Staff,Existing Teams Channel,Existing File Locations,Existing SharePoint Location
-2026-0142,Nguyen v. Acme Trucking,Tran Nguyen,Nguyen,MVA Personal Injury,Open,brennan@collinsattorneys.com,jhen@collinsattorneys.com; kelly@collinsattorneys.com,Clients > Nguyen MVA,\\fileserver\Matters\Nguyen,
-2025-0098,Estate of Smith,Estate of John Smith,Smith,Wrongful Death,Closed,alysan@collinsattorneys.com,,Clients > Smith,\\fileserver\Matters\Smith,https://collinsattorney.sharepoint.com/sites/legacy-smith
-INTAKE-014,Potential - Garcia Slip & Fall,Maria Garcia,Garcia,Premises Liability,Intake,guy@collinsattorneys.com,,Clients > Intake,,
+2026-0142,Nguyen v. Acme Trucking,Tran Nguyen,Nguyen,MVA Personal Injury,Litigation,brennan@collinsattorneys.com,jhen@collinsattorneys.com; kelly@collinsattorneys.com,C&C- Civil Rights > Nguyen,\\fileserver\Matters\Nguyen,
+2026-0210,Garcia Premises Review,Maria Garcia,Garcia,Slip & Fall Evaluation,Eval,guy@collinsattorneys.com,,C&C- Civil Rights > Garcia,,
+2025-0098,Estate of Smith,Estate of John Smith,Smith,Wrongful Death,Closed,alysan@collinsattorneys.com,,C&C- Civil Rights > Smith,\\fileserver\Matters\Smith,https://collinsattorney.sharepoint.com/sites/legacy-smith
+2026-0155,Chavez Demand,Leona Chavez,Chavez,Pre-suit Demand,Pre-Litigation,brennan@collinsattorneys.com,,C&C- Civil Rights > Chavez,,

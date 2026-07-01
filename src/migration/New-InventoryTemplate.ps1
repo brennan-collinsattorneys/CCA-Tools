@@ -38,7 +38,7 @@ $sample = [ordered]@{
     'Client Name'                  = 'Tran Nguyen'
     'Client Last Name'             = 'Nguyen'
     'Short Description'            = 'MVA Personal Injury'
-    'Status'                       = 'Open'
+    'Status'                       = 'Litigation'
     'Lead Attorney'                = 'brennan@collinsattorneys.com'
     'Assigned Staff'               = 'jhen@collinsattorneys.com; kelly@collinsattorneys.com'
     'Existing Teams Channel'       = 'Clients > Nguyen MVA'
@@ -52,10 +52,10 @@ $pkg = [pscustomobject]$sample | Export-Excel -Path $OutputPath -WorksheetName '
 # Status dropdown (column F) for a generous row range.
 $ws = $pkg.Workbook.Worksheets['Matters']
 $dv = $ws.DataValidations.AddListValidation('F2:F1000')
-foreach ($s in 'Prospective','Open','Closed','Intake') { [void]$dv.Formula.Values.Add($s) }
+foreach ($s in 'Eval','Pre-Litigation','Litigation','Closed') { [void]$dv.Formula.Values.Add($s) }
 $dv.ShowErrorMessage = $true
 $dv.ErrorTitle = 'Invalid Status'
-$dv.Error = 'Status must be Prospective, Open, Closed, or Intake.'
+$dv.Error = 'Status must be Eval, Pre-Litigation, Litigation, or Closed.'
 
 Close-ExcelPackage $pkg
 Write-Host "Inventory template written to $OutputPath" -ForegroundColor Green

@@ -49,6 +49,34 @@ SharePoint site, metadata/retention, and the AI registration placeholder:
 | `Set-MatterMetadata.ps1` | Stamp Matter ID/Client, set column defaults, apply retention label |
 | `Register-MatterAIPlaceholder.ps1` | Add AI registration record (matter is AI-ready) |
 
+## External collaborators (co-counsel) — per-matter access
+
+Each matter is its own Team + SharePoint site, so external access is naturally scoped to one
+matter. Matter sites are provisioned as **guests allowed, no anonymous links**. To grant access:
+
+```powershell
+./src/provisioning/Grant-MatterExternalAccess.ps1 -MatterAlias 'matter-2026-0142' `
+  -ExternalEmail 'cocounsel@otherfirm.com'          # add as Member (Team + SharePoint)
+./src/provisioning/Grant-MatterExternalAccess.ps1 -MatterAlias 'matter-2026-0142' `
+  -ExternalEmail 'cocounsel@otherfirm.com' -AsOwner  # add as Owner
+```
+
+Invites the person as a guest (if needed) and adds them to that matter's group — granting **both**
+Teams collaboration and SharePoint document access, for that matter only. Requires tenant guest
+access (enabled) and `User.Invite.All` / `Group.ReadWrite.All`.
+
+## Matter lifecycle status
+
+A matter keeps ONE Team + site; its status changes as it moves through the legal process:
+
+```powershell
+./src/provisioning/Set-MatterStatus.ps1 -MatterAlias 'matter-2026-0142' -Status 'Litigation'
+```
+
+Statuses: **Eval → Pre-Litigation → Litigation → Closed**. New matters start at **Eval**. Setting
+**Closed** flags the matter for archival to the Litigation Knowledge Repository (the archive itself
+is handled by the closed-matter workflow, not this script).
+
 ## Matter inventory (authoritative migration source)
 
 The inventory is the single source of truth for classification, bulk provisioning, and migration.

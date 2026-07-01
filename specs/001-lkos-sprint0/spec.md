@@ -239,6 +239,33 @@ explicit human approval.
 
 ---
 
+### User Story 11 - External Collaborator Access & Matter Lifecycle Status (Priority: P2)
+
+Co-counsel and other external collaborators are granted access to a specific matter — its
+SharePoint documents and its Team — without exposing any other matter. Separately, staff move a
+matter through its lifecycle (Eval → Pre-Litigation → Litigation → Closed) on the one persistent
+workspace as its legal posture changes.
+
+**Why this priority**: Matters routinely involve outside collaborators and always progress through
+legal stages; both must work per-matter without redesigning the architecture.
+
+**Independent Test**: Grant a test guest access to one matter and confirm they can reach that
+matter's Team and site (and no other), then change the matter's status and confirm the new status
+is recorded on the same workspace.
+
+**Acceptance Scenarios**:
+
+1. **Given** a provisioned matter, **When** an external email is granted access, **Then** the guest
+   can access that matter's Team and SharePoint site, scoped to that matter only.
+2. **Given** a matter site, **When** provisioned, **Then** guest sharing is allowed but anonymous
+   ("anyone") links are disabled.
+3. **Given** a matter in Eval, **When** its status is changed to Litigation, **Then** the status is
+   updated on the same Team/site with no new workspace created.
+4. **Given** a matter set to Closed, **When** the change is applied, **Then** it is flagged for
+   archival to the Litigation Knowledge Repository.
+
+---
+
 ### User Story 10 - Rename/Removal Template Reconcile (Priority: P2)
 
 After matters are created, the firm can evolve the standardized template and roll the changes out
@@ -305,8 +332,11 @@ and a non-empty removal is blocked unless explicitly forced.
 - **FR-007**: The PM MUST produce an authoritative master inventory spreadsheet containing
   Matter ID, Matter Name, Client Name, Status (Open/Closed/Intake), Lead Attorney, Assigned
   Staff, Existing Teams Channel, Existing File Locations, and Existing SharePoint Location.
-- **FR-008**: All matters MUST be classified as Prospective, Open, or Closed; only Open
-  matters receive Teams during this sprint.
+- **FR-008**: Every matter MUST have a lifecycle status of **Eval, Pre-Litigation, Litigation,
+  or Closed**. A matter has exactly ONE persistent Team + SharePoint site; the status is metadata
+  that changes as the matter progresses and MUST be updatable without recreating the workspace.
+  Active matters (Eval/Pre-Litigation/Litigation) receive a Team + site; Closed matters archive to
+  the Litigation Knowledge Repository (no active collaboration workspace).
 - **FR-009**: The firm MUST immediately freeze creation of new matter channels in the legacy
   Clients Team; newly accepted matters MUST use the provisioning process once available.
 - **FR-010**: The team MUST validate the naming standard and finalize conventions for all
@@ -348,12 +378,21 @@ and a non-empty removal is blocked unless explicitly forced.
   pushable firm-wide via an idempotent reconcile. Rename and removal changes MUST be supported
   via an explicit, declarative change-set with a content report, a mandatory approval gate, and
   protection against deleting non-empty objects without explicit confirmation.
+- **FR-023**: The system MUST support granting external collaborators (e.g., co-counsel) access to
+  an individual matter — both the matter's SharePoint site and its Team — scoped to that matter
+  only, via guest (Azure AD B2B) invitations. Because each matter is its own group/site, external
+  access is inherently per-matter. Matter sites MUST be provisioned to allow guest sharing but
+  disallow anonymous ("anyone with the link") sharing for confidentiality.
+- **FR-024**: Matter status changes (Eval → Pre-Litigation → Litigation → Closed) MUST be
+  applied to the single matter workspace as metadata via a supported operation, without creating a
+  new Team or losing history.
 
 ### Key Entities *(include if feature involves data)*
 
 - **Matter**: A legal case/engagement. Attributes: Matter ID, Matter Name, Client Name,
-  Status (Prospective/Open/Closed), Lead Attorney, Assigned Staff, naming-standard label,
-  existing locations (Teams channel, file locations, SharePoint location).
+  Status (Eval/Pre-Litigation/Litigation/Closed — a lifecycle state on one persistent workspace),
+  Lead Attorney, Assigned Staff, naming-standard label, existing locations (Teams channel, file
+  locations, SharePoint location).
 - **Matter Team**: A Microsoft Team instantiated from the standard template for an Open
   matter, containing the standard channels; exists only for active matters.
 - **Matter SharePoint Site**: The system-of-record site for a matter, with standard document

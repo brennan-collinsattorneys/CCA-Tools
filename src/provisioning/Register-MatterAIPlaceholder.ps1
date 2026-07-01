@@ -38,6 +38,7 @@ if ($PSCmdlet.ShouldProcess($SiteUrl, "Register AI placeholder for $MatterId")) 
         Title              = $MatterId
         LKOSMatterID       = $MatterId
         LKOSAIIndexState   = 'Pending'
+        LKOSMatterStatus   = 'Eval'
         SourceSiteUrl      = $SiteUrl
         RegisteredDateTime = (Get-Date).ToString('o')
     }
@@ -52,11 +53,13 @@ if ($PSCmdlet.ShouldProcess($SiteUrl, "Register AI placeholder for $MatterId")) 
     }
 
     if ($existing) {
-        Set-PnPListItem -List $ListTitle -Identity $existing.Id -Values $values | Out-Null
-        Write-Host "Updated AI registration for $MatterId." -ForegroundColor DarkYellow
+        # Preserve lifecycle status and index state on re-runs (do NOT reset to Eval/Pending).
+        $updateValues = @{ LKOSMatterID = $MatterId; SourceSiteUrl = $SiteUrl }
+        Set-PnPListItem -List $ListTitle -Identity $existing.Id -Values $updateValues | Out-Null
+        Write-Host "AI registration already present for $MatterId (status preserved)." -ForegroundColor DarkYellow
     } else {
         Add-PnPListItem -List $ListTitle -Values $values | Out-Null
-        Write-Host "Registered AI placeholder for $MatterId (AI-ready)." -ForegroundColor Green
+        Write-Host "Registered AI placeholder for $MatterId (AI-ready, status=Eval)." -ForegroundColor Green
     }
 }
 

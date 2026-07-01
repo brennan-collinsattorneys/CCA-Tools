@@ -14,10 +14,11 @@
         <Field ID="{a1b2c3d4-0002-4a01-9f01-000000000002}" Name="LKOSClientName" DisplayName="Client Name" Type="Text" Group="LKOS" Required="TRUE" Indexed="TRUE" />
         <Field ID="{a1b2c3d4-0003-4a01-9f01-000000000003}" Name="LKOSMatterName" DisplayName="Matter Name" Type="Text" Group="LKOS" Required="FALSE" />
         <Field ID="{a1b2c3d4-0004-4a01-9f01-000000000004}" Name="LKOSMatterStatus" DisplayName="Matter Status" Type="Choice" Group="LKOS" Required="TRUE">
-          <Default>Open</Default>
+          <Default>Eval</Default>
           <CHOICES>
-            <CHOICE>Prospective</CHOICE>
-            <CHOICE>Open</CHOICE>
+            <CHOICE>Eval</CHOICE>
+            <CHOICE>Pre-Litigation</CHOICE>
+            <CHOICE>Litigation</CHOICE>
             <CHOICE>Closed</CHOICE>
           </CHOICES>
         </Field>

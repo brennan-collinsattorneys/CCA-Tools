@@ -239,7 +239,30 @@ permissions for most users, AI-indexing support, and no associated Team.
 
 ---
 
-## Phase 12: User Story 10 - Rename/Removal Template Reconcile (Priority: P2)
+## Phase 12: User Story 11 - External Collaborator Access & Matter Lifecycle Status (Priority: P2)
+
+**Goal**: Grant co-counsel/external collaborators per-matter access (SharePoint + Teams) via
+guests, and move a matter through its lifecycle (Eval → Pre-Litigation → Litigation → Closed) on
+one persistent workspace. No architectural redesign — each matter is already its own group/site.
+
+**Independent Test**: Grant a test guest to one matter (reaches that matter's Team + site only),
+then change the matter's status and confirm it updates on the same workspace.
+
+### Implementation for User Story 11
+
+- [x] T066 [US11] Adopt the lifecycle status model (Eval/Pre-Litigation/Litigation/Closed) across `config/matter-metadata-model.json`, `templates/sharepoint/matter-content-type.xml`, `Import-MatterInventory.ps1`, and the inventory templates
+- [x] T067 [US11] Implement `src/provisioning/Set-MatterStatus.ps1` to change status in place (updates the AI registration record; flags Closed for repository archival; never recreates the Team)
+- [x] T068 [US11] Harden matter-site sharing in `New-MatterSite.ps1` (ExternalUserSharingOnly — guests allowed, no anonymous links; default link = specific people)
+- [x] T069 [US11] Implement `src/provisioning/Grant-MatterExternalAccess.ps1` to invite an external guest and grant per-matter Team + SharePoint access (idempotent)
+- [ ] T070 [US11] 🔶 MANUAL Live-validate: grant a test guest to a matter and change matter status; confirm per-matter scoping and status update
+- [x] T071 [US11] Document external access + matter lifecycle status in `docs/provisioning-runbook.md`
+
+**Checkpoint**: External collaborators can be added per matter, and matters move through their
+legal lifecycle on a single persistent workspace.
+
+---
+
+## Phase 13: User Story 10 - Rename/Removal Template Reconcile (Priority: P2)
 
 **Goal**: Apply **rename** and **removal** template changes to existing matters in-place, safely —
 so the firm is not locked into the first template version. Complements the additive
@@ -267,7 +290,7 @@ and no accidental data loss — the firm is no longer blocked on getting the tem
 
 ---
 
-## Phase 13: Polish & Cross-Cutting Concerns
+## Phase 14: Polish & Cross-Cutting Concerns
 
 **Purpose**: Finalize documentation, governance, and Definition-of-Done verification.
 

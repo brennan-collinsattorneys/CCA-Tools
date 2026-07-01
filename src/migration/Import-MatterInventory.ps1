@@ -24,10 +24,13 @@
     inventory/matter-inventory.csv.
 
 .PARAMETER Status
-    Status filter for the returned set. Default 'Open'.
+    Return only matters in this specific lifecycle state.
 
 .PARAMETER All
-    Return all matters (ignore the Status filter).
+    Return all matters (ignore status filtering).
+
+    Default (no -Status/-All): returns the ACTIVE set (Eval, Pre-Litigation, Litigation) — the
+    matters that get a Team + site. Closed matters are excluded (they archive to the repository).
 
 .PARAMETER ReportOnly
     Print the validation summary and return nothing; do not throw on validation errors.
@@ -40,8 +43,8 @@
 [CmdletBinding()]
 param(
     [string]$InventoryPath,
-    [ValidateSet('Prospective','Open','Closed')]
-    [string]$Status = 'Open',
+    [ValidateSet('Eval','Pre-Litigation','Litigation','Closed')]
+    [string]$Status,
     [switch]$All,
     [switch]$ReportOnly
 )
@@ -104,13 +107,13 @@ foreach ($row in $rows) {
 
     $rawStatus = (Get-Prop $row 'Status').Trim()
     $statusNorm = switch -Regex ($rawStatus) {
-        '^(?i)intake$'      { 'Prospective' }
-        '^(?i)prospective$' { 'Prospective' }
-        '^(?i)open$'        { 'Open' }
-        '^(?i)closed$'      { 'Closed' }
-        default             { $null }
+        '^(?i)(eval|evaluation|intake|prospective)$' { 'Eval' }
+        '^(?i)pre[-\s]?lit(igation)?$'               { 'Pre-Litigation' }
+        '^(?i)lit(igation)?$'                        { 'Litigation' }
+        '^(?i)closed$'                               { 'Closed' }
+        default                                      { $null }
     }
-    if (-not $statusNorm) { $errors.Add("Row $rowNum ('$id'): invalid Status '$rawStatus'."); continue }
+    if (-not $statusNorm) { $errors.Add("Row $rowNum ('$id'): invalid Status '$rawStatus' (expected Eval / Pre-Litigation / Litigation / Closed)."); continue }
 
     $clientName = (Get-Prop $row 'Client Name').Trim()
     $lastName   = (Get-Prop $row 'Client Last Name').Trim()
@@ -148,4 +151,7 @@ if ($ReportOnly) { return }
 if ($errors.Count -gt 0) { throw "Inventory validation failed with $($errors.Count) error(s). Fix the inventory before provisioning." }
 
 if ($All) { return $normalized }
-return @($normalized | Where-Object { $_.Status -eq $Status })
+if ($Status) { return @($normalized | Where-Object { $_.Status -eq $Status }) }
+# Default: the active set that gets a Team + site.
+$activeStates = @('Eval','Pre-Litigation','Litigation')
+return @($normalized | Where-Object { $activeStates -contains $_.Status })

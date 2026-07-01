@@ -36,9 +36,10 @@
       "displayName": "Matter Status",
       "type": "Choice",
       "required": true,
-      "choices": ["Prospective", "Open", "Closed"],
-      "default": "Open",
-      "aiIndexable": true
+      "choices": ["Eval", "Pre-Litigation", "Litigation", "Closed"],
+      "default": "Eval",
+      "aiIndexable": true,
+      "description": "Lifecycle state of the single matter workspace. Eval -> Pre-Litigation -> Litigation -> Closed. One Team per matter; status changes as the matter progresses (see Set-MatterStatus.ps1). Closed matters are archived to the Litigation Knowledge Repository."
     },
     {
       "internalName": "LKOSPracticeArea",

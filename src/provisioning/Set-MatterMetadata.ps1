@@ -41,9 +41,9 @@ if ($PSCmdlet.ShouldProcess($SiteUrl, 'Stamp matter metadata')) {
 
     # Ensure library column defaults reflect this matter (idempotent; primary identity stamping).
     try {
-        Set-PnPDefaultColumnValues -List $LibraryTitle -Field 'LKOSMatterID'     -Value $MatterId
-        Set-PnPDefaultColumnValues -List $LibraryTitle -Field 'LKOSClientName'   -Value $ClientName
-        Set-PnPDefaultColumnValues -List $LibraryTitle -Field 'LKOSMatterStatus' -Value 'Open'
+        # Status is managed on the AI registration record (Set-MatterStatus.ps1), not reset here.
+        Set-PnPDefaultColumnValues -List $LibraryTitle -Field 'LKOSMatterID'   -Value $MatterId
+        Set-PnPDefaultColumnValues -List $LibraryTitle -Field 'LKOSClientName' -Value $ClientName
     } catch {
         Write-Warning "Could not set default column values: $($_.Exception.Message)"
     }

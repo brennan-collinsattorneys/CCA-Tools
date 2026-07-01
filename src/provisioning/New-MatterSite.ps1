@@ -89,8 +89,9 @@ foreach ($folder in $Channels) {
 
 # Default column values.
 try {
+    # Note: LKOSMatterStatus is NOT set as a library default here — matter status is tracked on the
+    # AI registration record and changed via Set-MatterStatus.ps1 (re-runs must not reset it).
     Set-PnPDefaultColumnValues -List $LibraryTitle -Field 'LKOSMatterID'     -Value $MatterId
-    Set-PnPDefaultColumnValues -List $LibraryTitle -Field 'LKOSMatterStatus' -Value 'Open'
     Set-PnPDefaultColumnValues -List $LibraryTitle -Field 'LKOSAIIndexState' -Value 'Pending'
 } catch { Write-Warning "Could not set default column values: $($_.Exception.Message)" }
 
@@ -99,7 +100,7 @@ Write-Host "Configuring '$AiListTitle' list ..." -ForegroundColor Cyan
 if (-not (Test-PnPListExists -Title $AiListTitle)) {
     New-PnPList -Title $AiListTitle -Template GenericList | Out-Null
 }
-foreach ($siteField in 'LKOSMatterID','LKOSAIIndexState') {
+foreach ($siteField in 'LKOSMatterID','LKOSAIIndexState','LKOSMatterStatus') {
     try { Add-PnPField -List $AiListTitle -Field $siteField -ErrorAction Stop | Out-Null } catch { }
 }
 try { Add-PnPField -List $AiListTitle -DisplayName 'Source Site URL' -InternalName 'SourceSiteUrl' -Type URL -ErrorAction Stop | Out-Null } catch { }
@@ -123,6 +124,21 @@ foreach ($b in $bindings) {
     } catch {
         Write-Warning "  Permission bind for $($b.Label) ($($b.Role)) failed: $($_.Exception.Message)"
     }
+}
+
+# 5) Confidentiality: restrict external sharing to guests only (no anonymous "anyone" links).
+#    External collaborators (co-counsel) are still supported via explicit guest invitations
+#    (see Grant-MatterExternalAccess.ps1). Requires SharePoint admin rights; best-effort.
+Write-Host "Hardening site sharing (guests only, no anonymous links) ..." -ForegroundColor Cyan
+try {
+    Connect-PnPOnline -Url $cfg.sharePointAdminUrl -ClientId $cfg.clientId -Tenant $cfg.tenantId -Thumbprint $cfg.certificateThumbprint
+    Set-PnPTenantSite -Identity $SiteUrl -SharingCapability ExternalUserSharingOnly -ErrorAction Stop
+    try {
+        Set-PnPTenantSite -Identity $SiteUrl -DefaultSharingLinkType Direct -DefaultLinkPermission View -ErrorAction Stop
+    } catch { Write-Warning "  default link type not tightened: $($_.Exception.Message)" }
+    Write-Host "  sharing = ExternalUserSharingOnly (guests allowed, no anonymous)" -ForegroundColor Green
+} catch {
+    Write-Warning "  Could not set site sharing (needs SharePoint admin rights): $($_.Exception.Message)"
 }
 
 Write-Host "Site configuration applied to $SiteUrl." -ForegroundColor Green

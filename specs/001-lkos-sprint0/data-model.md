@@ -11,7 +11,7 @@ The central record representing a legal case/engagement.
 | MatterID | string | Unique; also used in naming standard |
 | MatterName | string | |
 | ClientName | string | |
-| Status | enum | Prospective \| Open \| Closed (Intake maps to Prospective) |
+| Status | enum | Eval \| Pre-Litigation \| Litigation \| Closed (lifecycle state; Intake/Prospective map to Eval) |
 | LeadAttorney | string | |
 | AssignedStaff | string[] | |
 | ExistingTeamsChannel | string | legacy Clients Team channel reference |
@@ -19,8 +19,9 @@ The central record representing a legal case/engagement.
 | ExistingSharePointLocation | string | optional |
 | NamingLabel | string | `Matter Number – Client Last Name – Short Description` |
 
-**Rules**: Every matter has exactly one Status. Only `Open` matters are provisioned with a
-Team this sprint. `Closed` matters never receive a Team.
+**Rules**: Every matter has exactly one Status and ONE persistent Team + site. Active matters
+(`Eval`/`Pre-Litigation`/`Litigation`) have a Team + site; status changes as the matter progresses
+(see `Set-MatterStatus.ps1`). `Closed` matters archive to the Litigation Knowledge Repository.
 
 ### MatterTeam
 
@@ -81,6 +82,10 @@ matter channels.
 
 ## State Transitions (Matter.Status)
 
-- Prospective → Open: triggers provisioning (Team + Site) via the workflow.
-- Open → Closed: future — content moves to LitigationKnowledgeRepository; Team retired
-  (closed-matter migration deferred beyond Sprint 0).
+One persistent Team + site per matter; status is metadata updated by `Set-MatterStatus.ps1`.
+
+- (New matter) → Eval: provisioning creates the Team + site (default status Eval).
+- Eval → Pre-Litigation → Litigation: status updated in place as the matter progresses; same
+  workspace throughout.
+- Litigation/any → Closed: matter flagged for archival to the LitigationKnowledgeRepository
+  (closed-matter content migration deferred beyond Sprint 0).
