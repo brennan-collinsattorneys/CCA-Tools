@@ -11,6 +11,7 @@ Spec-Driven Development.
 
 - `.specify/` — Spec Kit toolchain (templates, scripts, constitution).
 - `specs/001-lkos-sprint0/` — Sprint 0 specification, plan, design docs, and tasks.
+- `docs/backlog.md` — open questions/decisions and deferred (post–Sprint 0) workstreams.
   - `spec.md` — feature specification (user stories, requirements, success criteria)
   - `plan.md` — implementation plan and architecture
   - `tasks.md` — actionable, dependency-ordered task list
